@@ -14,7 +14,10 @@
 - Håll domänmodeller och regler frikopplade från UI-komponenter. Föredra små, begripliga Angular-komponenter och tjänster med tydliga ansvarsområden; följ Angulars etablerade TypeScript- och dependency-injection-mönster.
 - Använd webbläsar-API:er vid behov, exempelvis Screen Wake Lock. Hantera att Wake Lock kan nekas eller släppas och försök återaktivera när sidan blir synlig igen.
 - Bygg MVP:n som webb/PWA. Beakta att Capacitor kan användas för en framtida native-app, men inför inte Capacitor eller plattformsspecifik kod förrän det blir en konkret uppgift.
-- Utforma gränssnittet mobile-first, tillgängligt och användbart med touch. Bevara pixelgrafikens skärpa med `image-rendering: pixelated` när sådana tillgångar införs.
+- Utforma spelargränssnittet mobile-first, responsivt, tillgängligt och användbart med touch. Anpassa navigation och informationsmängd för större skärmar; skala inte bara upp mobilvyn.
+- Bygg PWA-stödet med manifest och service worker. Prioritera att träningsflödet och lokal data fungerar vid tillfälliga nätverksavbrott, och gör nätverkskrav tydliga.
+- En framtida adminyta kan vara desktop-first men ska fortfarande fungera responsivt. Lägg inte till adminroller, behörigheter eller adminfunktioner i Solo-MVP:n utan uttryckligt produktbeslut.
+- Bevara pixelgrafikens skärpa med `image-rendering: pixelated` när sådana tillgångar införs.
 - Lägg inte till beroenden, konton, telemetri eller externa tjänster utan ett tydligt behov i uppgiften.
 
 ## Arbetsflöde

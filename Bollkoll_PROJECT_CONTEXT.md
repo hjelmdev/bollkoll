@@ -50,13 +50,15 @@ Illustrationer, instruktioner och video kan läggas till senare.
 
 ## 2. Mobile first
 
-Appen ska främst användas på mobil.
+Spelarupplevelsen ska utformas mobile-first eftersom appen främst används på mobil. Layouten ska sedan anpassas responsivt till surfplattor och större skärmar; desktop ska fungera väl även om det inte är huvudformatet för spelaren.
 
-Den ska fungera bra som PWA och kunna installeras på hemskärmen.
+Appen ska fungera bra som PWA och kunna installeras på hemskärmen. Viktiga träningsflöden ska kunna användas även vid tillfälligt avbrott i nätverket, med lokal lagring av data där det är lämpligt. Visa tydligt när en åtgärd kräver nätverksanslutning.
 
 När ett träningspass körs ska appen använda **Screen Wake Lock API** för att försöka hålla skärmen aktiv.
 
 Wake lock behöver återaktiveras när sidan blir synlig igen eftersom webbläsaren/systemet kan släppa låset.
+
+En eventuell adminyta kan vara desktop-first, exempelvis för hantering av övningar och innehåll. Den ska fortfarande vara responsiv och användbar på mindre skärmar. Adminfunktioner och behörigheter ingår inte i Solo-MVP:n.
 
 ## 3. Gamification utan negativ tävling
 
@@ -496,6 +498,7 @@ Motivering:
 - Angular ger en sammanhållen struktur och tydliga konventioner för appens växande funktionsområden.
 - TypeScript passar för domänmodeller som träningspass, historik, achievements och avatarföremål.
 - PWA passar mobile-first-användning och installation från hemskärmen.
+- Bygg och leverera appen som en responsiv webbapp med manifest och service worker så att installation och grundläggande offlineanvändning fungerar.
 - Webbläsar-API:er som Screen Wake Lock kan användas från Angular via webbläsarens JavaScript/TypeScript-API:er.
 - Avatar och troféskåp är huvudsakligen anpassade grafiska komponenter; ramverksvalet avgör dem inte.
 
@@ -504,6 +507,12 @@ React är ett giltigt alternativ, men Angular är det valda arbetsspåret. Ändr
 ## Möjlig native-app senare
 
 PWA:n ska byggas med framtida native-app i åtanke, men MVP:n är en webbapp. Om behov uppstår kan Angular-appen paketeras med Capacitor för iOS och Android och använda native-pluginer vid behov. Detta kräver senare separat utvärdering av plattformsspecifika funktioner, publicering och användarupplevelse; native-app ingår inte i MVP:n.
+
+## Responsiv design
+
+- Spelarens gränssnitt byggs mobile-first och optimeras för touch, stående skärm och användning under träning.
+- Anpassa layout, navigation och informationsmängd för surfplatta och desktop i stället för att enbart skala upp mobilvyn.
+- Om en administrativ yta införs får den optimeras för desktop och arbete med större mängder innehåll, men ska vara responsiv.
 
 ## Backend
 
