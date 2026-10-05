@@ -138,13 +138,15 @@ Varje övning kan på sikt innehålla:
 - steg-för-steg-instruktion
 - illustration
 - video
-- rekommenderad tid
+- rekommenderad tid eller repetitionsmål
 - poäng
 - svårighetsgrad
-- träningsläge: Solo / Duo / Team
-- kategori
-- taggar
-- eventuell repetitionsräkning
+- träningsfokus: ett eller flera huvudområden
+- deltagare: solo, par, trio eller grupp
+- miljö: inomhus och/eller utomhus
+- ytstorlek: liten, medelstor och/eller stor yta
+- utrustning som krävs
+- specifika taggar för exempelvis svag fot, vändning eller första touch
 
 Exempel på taggar:
 
@@ -158,6 +160,21 @@ Exempel på taggar:
 - passning
 - snabbhet
 - koordination
+
+## Kategorier och filter
+
+Användaren ska möta ett litet antal tydliga fokusområden. I första versionen slås **bollkänsla ihop med Bollkontroll**; bollkänsla/touch kan beskriva övningstypen utan att vara ett separat huvudfilter.
+
+Föreslagna huvudområden att börja med:
+
+- Bollkontroll (inklusive bollkänsla, första touch och dribbling)
+- Passning
+- Skott
+- Snabbhet
+- Koordination
+- Kondition
+
+Håll övningens träningsfokus åtskilt från urvalskrav som antal deltagare, inomhus/utomhus, ytstorlek och utrustning. Dessa egenskaper ska kunna användas var för sig i snabbpass och filter, så kombinationer som "ensam + inomhus + liten yta" inte blir egna kategorier. Bollkänsla är en specifik övningstyp/tagg inom Bollkontroll, inte ett eget huvudområde.
 
 ---
 

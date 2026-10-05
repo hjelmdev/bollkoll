@@ -1,59 +1,123 @@
+<header class="app-header">
+  <a class="brand" href="#hem" (click)="selectTab('home')" aria-label="Bollkoll startsida">
+    <span class="brand-mark" aria-hidden="true">B</span><span>Bollkoll</span>
+  </a>
+  <nav class="desktop-nav" aria-label="Huvudmeny">
+    @for (tab of tabs; track tab.id) {
+      <button type="button" class="nav-link" [class.active]="activeTab() === tab.id" (click)="selectTab(tab.id)">{{ tab.label }}</button>
+    }
+  </nav>
+  <div class="header-actions">
+    <button class="login-button" type="button" (click)="loginOpen.set(true)"><span aria-hidden="true">↗</span><span>Logga in</span></button>
+    <div class="menu-wrap">
+      <button class="icon-button more-button" type="button" aria-label="Öppna mer-menyn" [attr.aria-expanded]="menuOpen()" (click)="menuOpen.update(value => !value)"><span aria-hidden="true">☰</span></button>
+      @if (menuOpen()) {
+        <div class="more-menu">
+          <p class="menu-title">Mer från Bollkoll</p>
+          <button type="button" (click)="openInfo('Här kommer hjälp och vanliga frågor.')">Hjälp & frågor</button>
+          <button type="button" (click)="openInfo('Här kan du läsa om Bollkoll och hur vi tänker kring integritet.')">Om & integritet</button>
+          <button type="button" (click)="openInfo('Inställningar kommer senare i prototypen.')">Inställningar</button>
+        </div>
+      }
+    </div>
+  </div>
+</header>
+
+<nav class="mobile-nav" aria-label="Huvudmeny">
+  @for (tab of tabs; track tab.id) {
+    <button type="button" class="mobile-nav-item" [class.active]="activeTab() === tab.id" [attr.aria-current]="activeTab() === tab.id ? 'page' : null" (click)="selectTab(tab.id)">
+      <span class="nav-icon" aria-hidden="true">{{ tab.icon }}</span><span>{{ tab.label }}</span>
+    </button>
+  }
+</nav>
+
 <main class="page-shell">
-  <header class="topbar">
-    <a class="brand" href="/" aria-label="Bollkoll startsida">
-      <span class="brand-mark" aria-hidden="true">B</span>
-      <span>Bollkoll</span>
-    </a>
-    <span class="topbar-note">Få koll på bollen</span>
-  </header>
+  @if (activeTab() === 'home') {
+    <section class="hero" aria-labelledby="welcome-title">
+      <p class="eyebrow">DIN TRÄNING. DIN UTVECKLING.</p>
+      <h1 id="welcome-title">Lite boll varje dag<br />gör skillnad.</h1>
+      <p class="hero-copy">Bygg ett träningspass, kör övningarna i din takt och följ hur du utvecklas.</p>
+      <button class="hero-cta" type="button" (click)="openQuickStart()"><span aria-hidden="true">⚡</span> Skapa ett snabbpass <span aria-hidden="true">→</span></button>
+      <div class="hero-art" aria-hidden="true"><span class="orbit"></span><span class="orbit orbit-two"></span><span class="ball">⚽</span><span class="hero-spark">✦</span></div>
+      <span class="hero-sticker">10 min räcker fint</span>
+    </section>
 
-  <section class="hero" aria-labelledby="welcome-title">
-    <p class="eyebrow">DIN TRÄNING. DIN UTVECKLING.</p>
-    <h1 id="welcome-title">Lite boll varje dag<br />gör skillnad.</h1>
-    <p class="hero-copy">
-      Bygg ett träningspass, kör övningarna i din takt och följ hur du utvecklas.
-    </p>
-    <div class="hero-art" aria-hidden="true">
-      <span class="orbit orbit-one"></span>
-      <span class="orbit orbit-two"></span>
-      <span class="ball">⚽</span>
-      <span class="hero-spark">✦</span>
-    </div>
-    <span class="coming-soon">Din träningsresa börjar snart</span>
-  </section>
-
-  <section class="next-steps" aria-labelledby="next-title">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">PÅ VÄG</p>
-        <h2 id="next-title">Det här bygger vi</h2>
+    <section class="home-section" aria-labelledby="shortcuts-title">
+      <div class="section-heading"><div><p class="eyebrow">VÄLJ DIN VÄG</p><h2 id="shortcuts-title">Vad vill du göra?</h2></div><span class="quiet-label">Kom igång direkt</span></div>
+      <div class="shortcut-grid">
+        <button class="shortcut-card" type="button" (click)="selectTab('train')"><span class="shortcut-icon mint">◎</span><span class="shortcut-copy"><strong>Välj övningar</strong><small>Bläddra bland träningskort</small></span><span class="card-arrow">→</span></button>
+        <button class="shortcut-card" type="button" (click)="openQuickStart()"><span class="shortcut-icon peach">⚡</span><span class="shortcut-copy"><strong>Snabbstart</strong><small>Få ett pass som passar idag</small></span><span class="card-arrow">→</span></button>
+        <button class="shortcut-card" type="button" (click)="selectTab('workouts')"><span class="shortcut-icon lilac">▤</span><span class="shortcut-copy"><strong>Mina pass</strong><small>Fortsätt där du slutade</small></span><span class="card-arrow">→</span></button>
       </div>
-      <span class="step-count">01 / 03</span>
-    </div>
-    <div class="feature-list">
-      <article class="feature-card">
-        <span class="feature-icon" aria-hidden="true">◎</span>
-        <div>
-          <h3>Välj dina övningar</h3>
-          <p>Korta bollövningar för liten yta och egen träning.</p>
-        </div>
-      </article>
-      <article class="feature-card">
-        <span class="feature-icon" aria-hidden="true">◷</span>
-        <div>
-          <h3>Kör ett pass</h3>
-          <p>En övning i taget med timer och tydlig guidning.</p>
-        </div>
-      </article>
-      <article class="feature-card">
-        <span class="feature-icon" aria-hidden="true">✦</span>
-        <div>
-          <h3>Se din utveckling</h3>
-          <p>Samla framsteg och lås upp personliga belöningar.</p>
-        </div>
-      </article>
-    </div>
-  </section>
+    </section>
 
-  <footer class="page-footer">Byggd för att göra det enklare att komma ut och träna.</footer>
+    <section class="home-lower">
+      <article class="streak-card"><span class="streak-icon">✦</span><div><p class="eyebrow">DIN VECKA</p><h3>Två pass den här veckan</h3><p>En liten stund med bollen räknas.</p></div><span class="streak-number">2<span>/3</span></span></article>
+      <article class="recent-card"><div class="section-heading"><div><p class="eyebrow">SENAST</p><h3>Snabba fötter</h3></div><span class="recent-time">Igår · 10 min</span></div><button type="button" class="text-button" (click)="selectTab('profile')">Se träningshistorik <span>→</span></button></article>
+    </section>
+  }
+
+  @if (activeTab() === 'train') {
+    <section class="screen-heading"><div><p class="eyebrow">DAGS ATT TRÄNA</p><h1>Hitta ditt nästa pass</h1><p>Välj själv bland övningar eller låt oss sätta ihop ett snabbt pass.</p></div><span class="heading-ball" aria-hidden="true">⚽</span></section>
+    <section #quickPanel class="quick-panel" aria-labelledby="quick-title">
+      <div class="panel-heading"><div><span class="panel-icon">⚡</span><div><p class="eyebrow">SNABBSTART</p><h2 id="quick-title">Vad passar idag?</h2></div></div><span class="demo-tag">DEMO</span></div>
+      <div class="quick-fields">
+        <label>Fokus<select [value]="quickFocus()" (change)="quickFocus.set($any($event.target).value)"><option>Alla</option><option>Bollkontroll</option><option>Passning</option><option>Skott</option><option>Snabbhet</option><option>Koordination</option><option>Kondition</option></select></label>
+        <label>Vi är<select [value]="quickPlayers()" (change)="quickPlayers.set($any($event.target).value)"><option>Ensam</option><option>Par</option><option>Trio</option><option>Spelar ingen roll</option></select></label>
+        <label>Var<select [value]="quickEnvironment()" (change)="quickEnvironment.set($any($event.target).value)"><option>Spelar ingen roll</option><option>Inomhus</option><option>Utomhus</option></select></label>
+        <label>Yta<select [value]="quickSpace()" (change)="quickSpace.set($any($event.target).value)"><option>Spelar ingen roll</option><option>Liten yta</option><option>Medelstor yta</option><option>Stor yta</option></select></label>
+        <label>Passlängd<select [value]="quickMinutes()" (change)="quickMinutes.set(+$any($event.target).value)"><option [value]="5">5 minuter</option><option [value]="10">10 minuter</option><option [value]="15">15 minuter</option></select></label>
+      </div>
+      <button class="primary-button" type="button" (click)="generateQuickWorkout()">{{ quickGenerated() ? 'Uppdatera pass' : 'Skapa mitt pass' }} <span aria-hidden="true">→</span></button>
+    </section>
+
+    @if (quickGenerated()) {
+      <section #generatedPanel class="generated-panel" aria-live="polite"><div class="section-heading"><div><p class="eyebrow">DITT FÖRSLAG</p><h2>{{ quickMinutes() }} minuter · {{ quickPlayers() }}</h2></div><button type="button" class="text-button" (click)="editQuickChoices()">Ändra val</button></div>
+        <div class="generated-list">@for (exercise of quickMatches().slice(0, plannedExerciseCount()); track exercise.id; let i = $index) {<div class="generated-item"><span class="sequence">{{ i + 1 }}</span><span class="exercise-mini-icon">{{ exercise.focusAreas.includes('Passning') ? '↗' : exercise.focusAreas.includes('Skott') ? '◉' : '⚽' }}</span><div><strong>{{ exercise.name }}</strong><small>{{ exercise.focusAreas[0] }} · {{ exercise.durationSeconds }} sek</small></div><button class="favorite-button" type="button" [attr.aria-label]="favorites().includes(exercise.id) ? 'Ta bort favorit' : 'Favoritmarkera'" (click)="toggleFavorite(exercise.id)">{{ favorites().includes(exercise.id) ? '♥' : '♡' }}</button></div>} @empty {<p class="empty-state">Inga övningar matchar de här valen ännu. Ändra fokus, deltagare eller plats.</p>}</div>
+        @if (quickMatches().length > 0 && quickMatches().length < plannedExerciseCount()) {<p class="match-note">Vi hittade {{ quickMatches().length }} övningar som passar dina val.</p>}
+        <button class="primary-button start-button" type="button" [disabled]="quickMatches().length === 0" (click)="startQuickWorkout()">Kör passet <span aria-hidden="true">▶</span></button>
+      </section>
+    }
+
+    <section class="library-section" aria-labelledby="library-title"><div class="section-heading"><div><p class="eyebrow">ÖVNINGAR</p><h2 id="library-title">Övningsbibliotek</h2></div><span class="result-count">{{ filteredExercises().length }} övningar</span></div>
+      <label class="search-box"><span aria-hidden="true">⌕</span><input type="search" placeholder="Sök övningar" [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)" /></label>
+      <div class="filter-row"><div class="category-scroll">@for (category of categories; track category) {<button type="button" class="filter-chip" [class.selected]="selectedCategory() === category" (click)="selectedCategory.set(category)">{{ category }}</button>}</div><button type="button" class="filter-chip favorite-filter" [class.selected]="favoritesOnly()" (click)="favoritesOnly.update(value => !value)">♥ Favoriter</button></div>
+      <details class="extra-filters"><summary>Fler filter</summary><div class="extra-filter-grid"><label>Deltagare<select [value]="participantFilter()" (change)="participantFilter.set($any($event.target).value)"><option>Alla</option><option>Ensam</option><option>Par</option><option>Trio</option></select></label><label>Var<select [value]="environmentFilter()" (change)="environmentFilter.set($any($event.target).value)"><option>Alla</option><option>Inomhus</option><option>Utomhus</option></select></label><label>Yta<select [value]="spaceFilter()" (change)="spaceFilter.set($any($event.target).value)"><option>Alla</option><option>Liten yta</option><option>Medelstor yta</option><option>Stor yta</option></select></label><label>Utrustning<select [value]="equipmentFilter()" (change)="equipmentFilter.set($any($event.target).value)"><option>Alla</option><option>Boll</option><option>Vägg</option><option>Koner</option></select></label></div></details>
+      <div class="exercise-grid">@for (exercise of filteredExercises(); track exercise.id) {<article class="exercise-card"><div class="exercise-card-top"><span class="exercise-illustration" [class.passing]="exercise.focusAreas.includes('Passning')" [class.shooting]="exercise.focusAreas.includes('Skott')">{{ exercise.focusAreas.includes('Passning') ? '↗' : exercise.focusAreas.includes('Skott') ? '◉' : exercise.focusAreas.includes('Snabbhet') ? '⚡' : '⚽' }}</span><button class="favorite-button" type="button" [attr.aria-label]="favorites().includes(exercise.id) ? 'Ta bort ' + exercise.name + ' från favoriter' : 'Lägg till ' + exercise.name + ' som favorit'" (click)="toggleFavorite(exercise.id)">{{ favorites().includes(exercise.id) ? '♥' : '♡' }}</button></div><div class="exercise-meta"><span>{{ exercise.focusAreas[0] }}</span><span>{{ exercise.difficulty }}</span></div><h3>{{ exercise.name }}</h3><p>{{ exercise.description }}</p><div class="exercise-tags"><span>{{ exercise.participants.join(' / ') }}</span><span>{{ exercise.environments.join(' / ') }}</span><span>{{ exercise.spaces.join(' / ') }}</span><span>{{ exercise.durationSeconds }} sek</span>@for (tag of exercise.tags.slice(0, 2); track tag) {<span>{{ tag }}</span>}</div><button class="card-action" type="button" (click)="startPlayer([exercise.id])">Visa övning <span>→</span></button></article>} @empty {<p class="empty-state">Inga övningar matchar de här valen. Prova ett annat filter.</p>}</div>
+    </section>
+  }
+
+  @if (activeTab() === 'workouts') {
+    <section class="screen-heading"><div><p class="eyebrow">SPARADE FÖR DIG</p><h1>Mina pass</h1><p>Bygg egna pass och plocka fram dem när du vill träna.</p></div><button class="primary-button heading-action" type="button" (click)="builderOpen.set(true)"><span>＋</span> Skapa pass</button></section>
+    <div class="workout-list">@for (workout of savedWorkouts(); track workout.id) {<article class="workout-card"><div class="workout-cover"><span aria-hidden="true">⚽</span><small>{{ workout.exerciseIds.length }} ÖVNINGAR</small></div><div class="workout-content"><div class="exercise-meta"><span>{{ workout.focus }}</span><span>DEMO</span></div><h2>{{ workout.name }}</h2><p>{{ workout.minutes }} minuter · {{ workout.exerciseIds.length }} träningskort</p><div class="workout-preview">@for (id of workout.exerciseIds.slice(0, 3); track id) {@if (exerciseById(id); as exercise) {<span>{{ exercise.name }}</span>}}</div><button class="primary-button" type="button" (click)="startSavedWorkout(workout)">Starta passet <span>▶</span></button></div></article>}</div>
+  }
+
+  @if (activeTab() === 'profile') {
+    <section class="screen-heading"><div><p class="eyebrow">DIN RESA MED BOLLEN</p><h1>Profil & framsteg</h1><p>Allt du gjort och allt du har på gång.</p></div><button class="ghost-button" type="button" (click)="loginOpen.set(true)">Logga in för att spara</button></section>
+    <section class="profile-card"><div class="avatar">A<span class="avatar-status">✦</span></div><div class="profile-details"><span class="demo-tag">LOKAL DEMO</span><h2>Alex Andersson</h2><p>Bollkompis · Nivå 2</p></div><button class="icon-button edit-button" type="button" aria-label="Redigera profil" (click)="openInfo('Profilredigering kommer senare.')">✎</button></section>
+    <section class="stats-grid"><article><span>⚽</span><strong>8</strong><small>genomförda pass</small></article><article><span>◷</span><strong>74 min</strong><small>träningstid</small></article><article><span>✦</span><strong>4 dagar</strong><small>bästa streak</small></article></section>
+    <section class="profile-section"><div class="section-heading"><div><p class="eyebrow">SAMLAT PÅ DIG</p><h2>Achievements</h2></div><button class="text-button" type="button" (click)="openInfo('Fler achievements kommer snart.')">Visa alla →</button></div><div class="achievement-list"><article class="achievement"><span>🏅</span><div><strong>Första passet</strong><small>Avklarad · 1 av 1 pass</small></div><span class="check">✓</span></article><article class="achievement"><span>🔥</span><div><strong>Träna tre dagar</strong><small>2 av 3 dagar</small><div class="progress-track"><i style="width: 66%"></i></div></div><span class="progress-value">2/3</span></article><article class="achievement"><span>⚽</span><div><strong>Testa fem övningar</strong><small>4 av 5 olika övningar</small><div class="progress-track"><i style="width: 80%"></i></div></div><span class="progress-value">4/5</span></article></div></section>
+    <section class="profile-section"><div class="section-heading"><div><p class="eyebrow">SENASTE TRÄNINGEN</p><h2>Historik</h2></div><span class="result-count">8 pass totalt</span></div><div class="history-list"><article><span class="history-day">IDAG</span><span class="history-ball">⚽</span><div><strong>Snabba fötter</strong><small>4 övningar · 10 minuter</small></div><span class="history-points">+40 p</span></article><article><span class="history-day">MÅN</span><span class="history-ball">⚽</span><div><strong>Vägg & touch</strong><small>4 övningar · 12 minuter</small></div><span class="history-points">+50 p</span></article><article><span class="history-day">LÖR</span><span class="history-ball">⚽</span><div><strong>Teknikmix</strong><small>5 övningar · 15 minuter</small></div><span class="history-points">+65 p</span></article></div></section>
+    <section class="trophy-shelf"><div><p class="eyebrow">DIN SAMLING</p><h2>Troféskåpet</h2><p>Tre pokaler väntar på att låsas upp.</p></div><div class="trophy-icons"><span>🏆</span><span>🥈</span><span>🔒</span></div></section>
+  }
+
+  <footer class="page-footer">Bollkoll · Få koll på bollen</footer>
 </main>
+
+@if (builderOpen()) {
+  <div class="modal-backdrop" (click)="$event.target === $event.currentTarget && builderOpen.set(false)"><section class="dialog builder-dialog" role="dialog" aria-modal="true" aria-labelledby="builder-title"><button class="dialog-close" type="button" aria-label="Stäng" (click)="builderOpen.set(false)">×</button><p class="eyebrow">DITT EGET UPPLÄGG</p><h2 id="builder-title">Bygg ett träningspass</h2><p>Välj övningar att lägga i passet.</p><div class="builder-list">@for (exercise of exercises; track exercise.id) {<button type="button" class="builder-option" [class.chosen]="builderSelection().includes(exercise.id)" (click)="toggleBuilderExercise(exercise.id)"><span class="builder-check">{{ builderSelection().includes(exercise.id) ? '✓' : '+' }}</span><span><strong>{{ exercise.name }}</strong><small>{{ exercise.focusAreas[0] }} · {{ exercise.durationSeconds }} sek</small></span></button>}</div><button class="primary-button" type="button" (click)="saveBuiltWorkout()">Spara mitt pass · {{ builderSelection().length }} övningar</button></section></div>
+}
+
+@if (loginOpen()) {
+  <div class="modal-backdrop" (click)="$event.target === $event.currentTarget && loginOpen.set(false)"><section class="dialog login-dialog" role="dialog" aria-modal="true" aria-labelledby="login-title"><button class="dialog-close" type="button" aria-label="Stäng" (click)="loginOpen.set(false)">×</button><span class="dialog-mark">B</span><p class="eyebrow">VÄLKOMMEN TILLBAKA</p><h2 id="login-title">Logga in på Bollkoll</h2><p>Synka dina pass och din utveckling mellan enheter.</p><label class="login-label">E-postadress<input type="email" placeholder="du@exempel.se" /></label><button class="primary-button" type="button" (click)="notify('Demo: inloggningen kopplas på senare.')">Skicka inloggningslänk</button><small class="privacy-note">Du kan fortsätta testa utan konto. Dina demoövningar ligger kvar här.</small></section></div>
+}
+
+@if (infoMessage()) {
+  <div class="modal-backdrop" (click)="$event.target === $event.currentTarget && infoMessage.set('')"><section class="dialog info-dialog" role="dialog" aria-modal="true"><button class="dialog-close" type="button" aria-label="Stäng" (click)="infoMessage.set('')">×</button><span class="dialog-mark">✦</span><h2>På gång</h2><p>{{ infoMessage() }}</p><button class="primary-button" type="button" (click)="infoMessage.set('')">Okej</button></section></div>
+}
+
+@if (showPlayer()) {
+  <div class="player-screen"><header><span class="player-brand">Bollkoll</span><button class="icon-button" type="button" aria-label="Avsluta pass" (click)="showPlayer.set(false)">×</button></header>@if (playerExercise(); as exercise) {<div class="player-progress"><span>ÖVNING {{ playerIndex() + 1 }} AV {{ playerExerciseIds().length }}</span><div><i [style.width.%]="((playerIndex() + 1) / playerExerciseIds().length) * 100"></i></div></div><div class="player-content"><span class="player-ball">⚽</span><p class="eyebrow">{{ exercise.focusAreas[0] }} · {{ exercise.difficulty }}</p><h1>{{ exercise.name }}</h1><p>{{ exercise.description }}</p><div class="timer-placeholder">{{ exercise.durationSeconds >= 60 ? '01' : '00' }}:{{ (exercise.durationSeconds % 60).toString().padStart(2, '0') }}</div><span class="demo-tag">TIMERPROTOTYP</span><button class="primary-button" type="button" (click)="nextExercise()">{{ playerIndex() + 1 === playerExerciseIds().length ? 'Avsluta pass' : 'Nästa övning' }} <span>→</span></button></div>}</div>
+}
+
+@if (toast()) {<div class="toast" role="status">{{ toast() }}</div>}
