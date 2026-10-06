@@ -39,6 +39,9 @@ jobs:
       - name: Build Angular app
         run: pnpm exec ng build --base-href=/bollkoll/
 
+      - name: Add GitHub Pages SPA fallback
+        run: cp dist/bollkoll/browser/index.html dist/bollkoll/browser/404.html
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:

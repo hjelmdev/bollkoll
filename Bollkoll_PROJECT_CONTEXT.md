@@ -533,10 +533,9 @@ PWA:n ska byggas med framtida native-app i åtanke, men MVP:n är en webbapp. Om
 
 ## Navigation och deeplänkar
 
-- Huvudvyer och sparade träningsresultat ska kunna öppnas direkt via en URL och visas rätt efter omladdning.
-- Använd Angular Router med separata routes för appens huvudvyer och träningsresultat. Resultatroute ska identifiera ett sparat pass och visa en tydlig reservvy om passet inte finns lokalt.
-- Välj en URL-strategi som fungerar på vald hosting. På GitHub Pages behöver path-baserade routes exempelvis en `404.html`-fallback; Angulars hash-location är ett alternativ om hostingens fallback inte kan konfigureras.
-- Den nuvarande hashnavigeringen i prototypen är en tillfällig lösning. Resultatlänkar bygger på lokal lagring och kan därför inte visa samma pass på en annan enhet förrän konto och synk mellan enheter finns.
+- Angular Router används för riktiga path-baserade routes till Hem, Träna, Mina pass, Profil och sparade träningsresultat. Vyerna ska kunna öppnas direkt, överleva omladdning och fungera med webbläsarens bakåt/framåt.
+- GitHub Pages-publiceringen inkluderar `404.html` som fallback så att direkta path-routes laddar appen även på statisk hosting.
+- Resultatlänkar bygger fortfarande på lokal lagring och kan därför inte visa samma pass på en annan enhet förrän konto och synk mellan enheter finns. Okända eller lokalt otillgängliga resultat ska ge en tydlig reservväg.
 - Native app links/universal links utvärderas separat om appen paketeras för iOS eller Android.
 
 ## Backend
@@ -610,7 +609,7 @@ Fokus ska vara på appstommen.
 
 ## Prioritet 2
 
-- Angular Router med deeplänkar till huvudvyer och sparade träningsresultat, inklusive refresh och webbläsarens bakåt/framåt.
+- [x] Angular Router med deeplänkar till huvudvyer och sparade träningsresultat, inklusive refresh och webbläsarens bakåt/framåt.
 - välj övningar
 - bygg ett pass
 - starta pass

@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { ElementRef, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PLAYER_PROFILE_REPOSITORY } from './core/player-profile.repository';
 import { EXERCISES } from './data/exercises';
 import type { Exercise } from './models/exercise.model';
@@ -16,8 +18,8 @@ interface ScreenWakeLockHandle {
 }
 
 @Component({
-  selector: 'app-root',
-  imports: [WorkoutFeedback],
+  selector: 'app-page',
+  imports: [WorkoutFeedback, RouterLink],
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
@@ -27,6 +29,8 @@ export class App implements OnDestroy {
   @ViewChild('playerScreen') private playerScreen?: ElementRef<HTMLElement>;
 
   private readonly profileRepository = inject(PLAYER_PROFILE_REPOSITORY);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   readonly activeProfile = this.profileRepository.activeProfile;
   readonly favorites = computed(() => this.activeProfile().favoriteExerciseIds);
   readonly savedWorkouts = computed(() => this.activeProfile().savedWorkouts);
@@ -129,11 +133,6 @@ export class App implements OnDestroy {
     }
   };
 
-  private readonly routeChangeHandler = (): void => {
-    this.restoreRouteFromLocation();
-    window.scrollTo(0, 0);
-  };
-
   readonly filteredExercises = computed(() => {
     const category = this.selectedCategory();
     const search = this.searchTerm().trim().toLocaleLowerCase('sv');
@@ -162,15 +161,13 @@ export class App implements OnDestroy {
 
   constructor() {
     document.addEventListener('visibilitychange', this.visibilityHandler);
-    window.addEventListener('popstate', this.routeChangeHandler);
-    window.addEventListener('hashchange', this.routeChangeHandler);
-    this.restoreRouteFromLocation();
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      this.syncRoute(params.get('view'), params.get('tab'), params.get('sessionId'));
+    });
   }
 
   ngOnDestroy(): void {
     document.removeEventListener('visibilitychange', this.visibilityHandler);
-    window.removeEventListener('popstate', this.routeChangeHandler);
-    window.removeEventListener('hashchange', this.routeChangeHandler);
     this.clearPlayerTicker();
     void this.releaseWakeLock();
     this.unlockBackgroundScroll();
@@ -180,44 +177,36 @@ export class App implements OnDestroy {
     this.activeTab.set(tab);
     this.menuOpen.set(false);
     this.quickGenerated.set(false);
-    this.writeRouteHash(this.fragmentForTab(tab));
+    void this.router.navigateByUrl(`/${this.routeForTab(tab)}`);
     window.scrollTo(0, 0);
     requestAnimationFrame(() => window.scrollTo(0, 0));
   }
 
-  private restoreRouteFromLocation(): void {
-    const fragment = window.location.hash.slice(1);
-    const [route, tabFragment, encodedSessionId] = fragment.split('/');
-
-    if (route === 'resultat' && tabFragment && encodedSessionId) {
-      const tab = this.tabForFragment(tabFragment);
-      let sessionId = '';
-      try {
-        sessionId = decodeURIComponent(encodedSessionId);
-      } catch {
-        // An invalid encoded id falls back to the linked tab below.
-      }
+  private syncRoute(view: string | null, tabFragment: string | null, sessionId: string | null): void {
+    if (view === 'resultat') {
+      const tab = this.tabForRoute(tabFragment ?? '');
       const session = this.workoutSessions().find((item) => item.id === sessionId);
       if (tab && session) {
         this.activeTab.set(tab);
         this.workoutFeedbackSession.set(session);
         return;
       }
-      if (tab) {
-        this.activeTab.set(tab);
-        this.workoutFeedbackSession.set(null);
-        this.writeRouteHash(this.fragmentForTab(tab), true);
-        return;
-      }
+
+      const fallbackTab = tab ?? 'home';
+      this.activeTab.set(fallbackTab);
+      this.workoutFeedbackSession.set(null);
+      this.notify('Passet finns inte sparat på den här enheten.');
+      void this.router.navigateByUrl(`/${this.routeForTab(fallbackTab)}`, { replaceUrl: true });
+      return;
     }
 
-    const tab = this.tabForFragment(fragment);
-    this.activeTab.set(tab ?? 'home');
+    const tab = this.tabForRoute(view ?? '');
+    if (!tab) return;
+    this.activeTab.set(tab);
     this.workoutFeedbackSession.set(null);
-    if (fragment && !tab) this.writeRouteHash('hem', true);
   }
 
-  private fragmentForTab(tab: MainTab): string {
+  private routeForTab(tab: MainTab): string {
     switch (tab) {
       case 'home': return 'hem';
       case 'train': return 'trana';
@@ -226,21 +215,14 @@ export class App implements OnDestroy {
     }
   }
 
-  private tabForFragment(fragment: string): MainTab | undefined {
-    switch (fragment) {
+  private tabForRoute(route: string): MainTab | undefined {
+    switch (route) {
       case 'hem': return 'home';
       case 'trana': return 'train';
       case 'mina-pass': return 'workouts';
       case 'profil': return 'profile';
       default: return undefined;
     }
-  }
-
-  private writeRouteHash(fragment: string, replace = false): void {
-    if (window.location.hash.slice(1) === fragment) return;
-    const url = `${window.location.pathname}${window.location.search}#${fragment}`;
-    if (replace) window.history.replaceState(null, '', url);
-    else window.history.pushState(null, '', url);
   }
 
   openQuickStart(): void {
@@ -289,7 +271,7 @@ export class App implements OnDestroy {
 
   closeWorkoutFeedback(): void {
     this.workoutFeedbackSession.set(null);
-    this.writeRouteHash(this.fragmentForTab(this.activeTab()), true);
+    void this.router.navigateByUrl(`/${this.routeForTab(this.activeTab())}`, { replaceUrl: true });
   }
 
   generateQuickWorkout(): void {
@@ -536,7 +518,7 @@ export class App implements OnDestroy {
     const session = this.exitPlayer();
     if (!session) return;
     this.workoutFeedbackSession.set(session);
-    this.writeRouteHash(`resultat/${this.fragmentForTab(this.activeTab())}/${encodeURIComponent(session.id)}`);
+    void this.router.navigate(['/resultat', this.routeForTab(this.activeTab()), session.id]);
   }
 
   private saveCurrentWorkoutSession(): WorkoutSession | undefined {
