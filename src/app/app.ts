@@ -1,4 +1,5 @@
-import { Component, computed, ElementRef, OnDestroy, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, inject, OnDestroy, signal, ViewChild } from '@angular/core';
+import { WorkoutHistoryService } from './workout-history.service';
 
 type MainTab = 'home' | 'train' | 'workouts' | 'profile';
 
@@ -110,6 +111,8 @@ export class App implements OnDestroy {
   readonly builderOpen = signal(false);
   readonly builderSelection = signal<number[]>([1, 2, 5]);
   readonly showPlayer = signal(false);
+  readonly workoutHistory = inject(WorkoutHistoryService);
+  readonly workoutSessions = this.workoutHistory.sessions;
   readonly playerExerciseIds = signal<number[]>([]);
   readonly playerIndex = signal(0);
   readonly playerTitle = signal('Dagens snabbpass');
@@ -117,12 +120,40 @@ export class App implements OnDestroy {
   readonly playerStatus = signal<PlayerStatus>('paused');
   readonly playerWakeLockStatus = signal<WakeLockStatus>('unsupported');
   readonly completedPlayerExerciseIds = signal<number[]>([]);
+  readonly completedWorkoutCount = computed(() => this.workoutSessions().filter((session) => session.status === 'completed').length);
+  readonly trainingMinutes = computed(() => {
+    const seconds = this.workoutSessions().reduce((total, session) => total + session.durationSeconds, 0);
+    return seconds > 0 ? Math.max(1, Math.round(seconds / 60)) : 0;
+  });
+  readonly completedExerciseCount = computed(() => new Set(this.workoutSessions().flatMap((session) => session.completedExerciseIds)).size);
+  readonly currentWeekWorkoutCount = computed(() => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setHours(0, 0, 0, 0);
+    startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    return this.workoutSessions().filter((session) => new Date(session.startedAt) >= startOfWeek).length;
+  });
+  readonly trainingDaysThisWeek = computed(() => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setHours(0, 0, 0, 0);
+    startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    return new Set(this.workoutSessions()
+      .map((session) => new Date(session.startedAt))
+      .filter((date) => date >= startOfWeek)
+      .map((date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`)).size;
+  });
+  readonly trainingDaysProgressPercent = computed(() => Math.min(100, this.trainingDaysThisWeek() / 3 * 100));
+  readonly exerciseProgressPercent = computed(() => Math.min(100, this.completedExerciseCount() / 5 * 100));
+  readonly recentWorkout = computed(() => this.workoutSessions()[0] ?? null);
   private playerEndAt = 0;
   private playerTicker?: number;
   private wakeLock?: ScreenWakeLockHandle;
   private lockedScrollY = 0;
   private previousBodyStyles?: { position: string; top: string; width: string; overflow: string };
   private previousDocumentOverflow = '';
+  private playerStartedAt = '';
+  private playerSessionSaved = false;
 
   private readonly preventBackgroundTouchScroll = (event: TouchEvent): void => {
     if (!this.showPlayer()) return;
@@ -239,6 +270,8 @@ export class App implements OnDestroy {
     this.clearPlayerTicker();
     void this.releaseWakeLock();
     this.playerTitle.set(title);
+    this.playerStartedAt = new Date().toISOString();
+    this.playerSessionSaved = false;
     this.playerExerciseIds.set(validIds);
     this.playerIndex.set(0);
     this.completedPlayerExerciseIds.set([]);
@@ -290,6 +323,7 @@ export class App implements OnDestroy {
   }
 
   exitPlayer(): void {
+    this.saveCurrentWorkoutSession();
     this.clearPlayerTicker();
     this.showPlayer.set(false);
     this.playerStatus.set('paused');
@@ -424,6 +458,46 @@ export class App implements OnDestroy {
     this.exitPlayer();
     const exerciseWord = completedCount === 1 ? 'övning' : 'övningar';
     this.notify(`Snyggt jobbat! ${completedCount} ${exerciseWord} klara.`);
+  }
+
+  private saveCurrentWorkoutSession(): void {
+    if (this.playerSessionSaved || this.completedPlayerExerciseIds().length === 0) return;
+    this.playerSessionSaved = true;
+
+    const plannedExerciseIds = [...this.playerExerciseIds()];
+    const completedExerciseIds = [...this.completedPlayerExerciseIds()];
+    const durationSeconds = completedExerciseIds.reduce((total, id) => total + (this.exerciseById(id)?.durationSeconds ?? 0), 0);
+    const status = completedExerciseIds.length === plannedExerciseIds.length ? 'completed' : 'partial';
+    const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    this.workoutHistory.addSession({
+      id,
+      title: this.playerTitle(),
+      startedAt: this.playerStartedAt,
+      durationSeconds,
+      plannedExerciseIds,
+      completedExerciseIds,
+      status,
+    });
+  }
+
+  formatSessionDate(dateValue: string): string {
+    const date = new Date(dateValue);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const sameDate = (first: Date, second: Date) => first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate();
+
+    if (sameDate(date, today)) return 'Idag';
+    if (sameDate(date, yesterday)) return 'Igår';
+    return new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short' }).format(date).replace('.', '');
+  }
+
+  formatSessionDuration(seconds: number): string {
+    if (seconds < 60) return `${seconds} sek`;
+    return `${Math.round(seconds / 60)} min`;
   }
 
   toggleBuilderExercise(id: number): void {
