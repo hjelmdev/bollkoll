@@ -8,13 +8,14 @@
     <div class="feedback-emblem" aria-hidden="true">⚽</div>
     <p class="feedback-kicker">Passet är sparat</p>
     <h1 id="workout-feedback-title">@if (nickname(); as name) {Bra jobbat, {{ name }}!} @else {Bra jobbat!}</h1>
-    <p class="feedback-summary">{{ session().title }} · {{ formatDuration(session().durationSeconds) }}</p>
+    <p class="feedback-summary">{{ session().title }}</p>
 
     <div class="feedback-progress" aria-label="Passets resultat">
       <strong>{{ session().completionPercent }}<span>%</span></strong>
       <span>av passet</span>
       <p>{{ session().completedExerciseIds.length }} av {{ session().plannedExerciseIds.length }} övningar klara</p>
     </div>
+    <p class="feedback-time">{{ formatDuration(session().durationSeconds) }} aktiv tid <span>·</span> {{ formatDuration(session().plannedDurationSeconds) }} planerat</p>
 
     @if (!nickname()) {
       <div class="profile-invitation">
@@ -25,6 +26,19 @@
         <button class="primary-button" type="button" (click)="profileRequested.emit()">Anpassa profil</button>
       </div>
     }
+
+    <section class="exercise-summary" aria-labelledby="exercise-summary-title">
+      <h2 id="exercise-summary-title">Övningar i passet</h2>
+      <ol>
+        @for (exercise of exerciseSummary(); track exercise.id) {
+          <li>
+            <span class="exercise-status-mark" [class.completed]="exercise.status === 'Klar'" [class.partial]="exercise.status === 'Påbörjad'" aria-hidden="true">{{ exercise.status === 'Klar' ? '✓' : exercise.status === 'Påbörjad' ? '◷' : '·' }}</span>
+            <span class="exercise-description"><strong>{{ exercise.name }}</strong><small>{{ exercise.focus }} · {{ exercise.elapsedSeconds > 0 ? formatDuration(exercise.elapsedSeconds) : 'Ingen aktiv tid' }}</small></span>
+            <span class="exercise-status-label">{{ exercise.status }}</span>
+          </li>
+        }
+      </ol>
+    </section>
 
     <button class="feedback-close" type="button" (click)="closed.emit()">Tillbaka till Bollkoll</button>
   </main>

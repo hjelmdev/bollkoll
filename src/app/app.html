@@ -154,10 +154,11 @@
 }
 
 @if (workoutFeedbackSession(); as session) {
-  <app-workout-feedback
-    [session]="session"
-    [nickname]="activeProfile().nickname"
-    (closed)="closeWorkoutFeedback()"
+    <app-workout-feedback
+      [session]="session"
+      [nickname]="activeProfile().nickname"
+      [exercises]="exercises"
+      (closed)="closeWorkoutFeedback()"
     (profileRequested)="goToProfile()"
   />
 }

@@ -15,6 +15,8 @@ export interface WorkoutSession {
   completionPercent: number;
   plannedExerciseIds: number[];
   completedExerciseIds: number[];
+  /** Active seconds per planned exercise; absent on sessions saved before this field existed. */
+  exerciseElapsedSeconds?: number[];
 }
 
 export interface PlayerProfile {

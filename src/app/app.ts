@@ -485,6 +485,7 @@ export class App implements OnDestroy {
       completionPercent: plannedSeconds > 0 ? Math.min(100, Math.floor(durationSeconds / plannedSeconds * 100)) : 0,
       plannedExerciseIds,
       completedExerciseIds,
+      exerciseElapsedSeconds: [...this.playerElapsedSeconds()],
     };
     this.playerSessionSaved = true;
     this.profileRepository.updateActiveProfile((profile) => ({
