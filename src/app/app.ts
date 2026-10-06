@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, OnDestroy, signal, ViewChild } from '@angular/core';
 
 type MainTab = 'home' | 'train' | 'workouts' | 'profile';
 
@@ -40,12 +40,19 @@ interface SavedWorkout {
   exerciseIds: number[];
 }
 
+type PlayerStatus = 'running' | 'paused' | 'exerciseDone';
+type WakeLockStatus = 'pending' | 'active' | 'unavailable' | 'unsupported';
+
+interface ScreenWakeLockHandle {
+  release(): Promise<void>;
+}
+
 @Component({
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
-export class App {
+export class App implements OnDestroy {
   @ViewChild('quickPanel') private quickPanel?: ElementRef<HTMLElement>;
   @ViewChild('generatedPanel') private generatedPanel?: ElementRef<HTMLElement>;
 
@@ -104,6 +111,26 @@ export class App {
   readonly showPlayer = signal(false);
   readonly playerExerciseIds = signal<number[]>([]);
   readonly playerIndex = signal(0);
+  readonly playerTitle = signal('Dagens snabbpass');
+  readonly playerRemaining = signal(0);
+  readonly playerStatus = signal<PlayerStatus>('paused');
+  readonly playerWakeLockStatus = signal<WakeLockStatus>('unsupported');
+  readonly completedPlayerExerciseIds = signal<number[]>([]);
+  private playerEndAt = 0;
+  private playerTicker?: number;
+  private wakeLock?: ScreenWakeLockHandle;
+
+  private readonly visibilityHandler = (): void => {
+    if (document.visibilityState === 'hidden') {
+      // Browsers release screen locks when their document becomes hidden.
+      this.wakeLock = undefined;
+      return;
+    }
+
+    if (this.showPlayer() && this.playerStatus() === 'running') {
+      void this.requestWakeLock();
+    }
+  };
 
   readonly savedWorkouts = signal<SavedWorkout[]>([
     { id: 101, name: 'Snabba fötter', focus: 'Bollkontroll · snabbhet', minutes: 10, exerciseIds: [1, 8, 4, 15] },
@@ -136,6 +163,16 @@ export class App {
   });
 
   readonly playerExercise = computed(() => this.exercises.find((exercise) => exercise.id === this.playerExerciseIds()[this.playerIndex()]));
+
+  constructor() {
+    document.addEventListener('visibilitychange', this.visibilityHandler);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('visibilitychange', this.visibilityHandler);
+    this.clearPlayerTicker();
+    void this.releaseWakeLock();
+  }
 
   selectTab(tab: MainTab): void {
     this.activeTab.set(tab);
@@ -170,7 +207,7 @@ export class App {
   }
 
   startQuickWorkout(): void {
-    this.startPlayer(this.quickMatches().slice(0, this.plannedExerciseCount()).map((exercise) => exercise.id));
+    this.startPlayer(this.quickMatches().slice(0, this.plannedExerciseCount()).map((exercise) => exercise.id), 'Snabbpass');
   }
 
   plannedExerciseCount(): number {
@@ -178,22 +215,164 @@ export class App {
   }
 
   startSavedWorkout(workout: SavedWorkout): void {
-    this.startPlayer(workout.exerciseIds);
+    this.startPlayer(workout.exerciseIds, workout.name);
   }
 
-  startPlayer(ids: number[]): void {
-    this.playerExerciseIds.set(ids);
+  startPlayer(ids: number[], title = 'Träningspass'): void {
+    const validIds = ids.filter((id) => this.exerciseById(id));
+    if (validIds.length === 0) {
+      this.notify('Det här passet saknar övningar.');
+      return;
+    }
+    this.clearPlayerTicker();
+    void this.releaseWakeLock();
+    this.playerTitle.set(title);
+    this.playerExerciseIds.set(validIds);
     this.playerIndex.set(0);
+    this.completedPlayerExerciseIds.set([]);
     this.showPlayer.set(true);
+    this.beginCurrentExercise();
   }
 
-  nextExercise(): void {
+  pausePlayer(): void {
+    if (this.playerStatus() !== 'running') return;
+    this.updatePlayerCountdown();
+    if (this.playerStatus() !== 'running') return;
+    this.clearPlayerTicker();
+    this.playerStatus.set('paused');
+    void this.releaseWakeLock();
+  }
+
+  resumePlayer(): void {
+    if (this.playerStatus() !== 'paused') return;
+    this.playerStatus.set('running');
+    this.startPlayerTicker();
+  }
+
+  continuePlayer(): void {
+    if (this.playerStatus() !== 'exerciseDone') return;
     if (this.playerIndex() + 1 >= this.playerExerciseIds().length) {
-      this.showPlayer.set(false);
-      this.notify('Snyggt jobbat! Passet är klart.');
+      this.finishPlayer();
       return;
     }
     this.playerIndex.update((index) => index + 1);
+    this.beginCurrentExercise();
+  }
+
+  skipPlayerExercise(): void {
+    if (this.playerStatus() === 'exerciseDone') return;
+    if (this.playerIndex() + 1 >= this.playerExerciseIds().length) {
+      this.exitPlayer();
+      this.notify('Passet avslutades innan sista övningen.');
+      return;
+    }
+    this.playerIndex.update((index) => index + 1);
+    this.beginCurrentExercise();
+  }
+
+  exitPlayer(): void {
+    this.clearPlayerTicker();
+    this.showPlayer.set(false);
+    this.playerStatus.set('paused');
+    void this.releaseWakeLock();
+  }
+
+  formatTime(totalSeconds: number): string {
+    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  }
+
+  playerProgressPercent(): number {
+    const count = this.playerExerciseIds().length;
+    const exercise = this.playerExercise();
+    if (count === 0 || !exercise) return 0;
+    const elapsed = exercise.durationSeconds - this.playerRemaining();
+    return Math.min(100, ((this.playerIndex() + elapsed / exercise.durationSeconds) / count) * 100);
+  }
+
+  private beginCurrentExercise(): void {
+    const exercise = this.playerExercise();
+    if (!exercise) {
+      this.exitPlayer();
+      return;
+    }
+    this.playerRemaining.set(exercise.durationSeconds);
+    this.playerStatus.set('running');
+    this.startPlayerTicker();
+  }
+
+  private startPlayerTicker(): void {
+    this.clearPlayerTicker();
+    this.playerEndAt = Date.now() + this.playerRemaining() * 1000;
+    this.playerTicker = window.setInterval(() => this.updatePlayerCountdown(), 200);
+    void this.requestWakeLock();
+  }
+
+  private updatePlayerCountdown(): void {
+    if (this.playerStatus() !== 'running') return;
+    const secondsLeft = Math.max(0, Math.ceil((this.playerEndAt - Date.now()) / 1000));
+    if (secondsLeft !== this.playerRemaining()) this.playerRemaining.set(secondsLeft);
+    if (secondsLeft > 0) return;
+
+    this.clearPlayerTicker();
+    const finishedId = this.playerExercise()?.id;
+    if (finishedId !== undefined && !this.completedPlayerExerciseIds().includes(finishedId)) {
+      this.completedPlayerExerciseIds.update((ids) => [...ids, finishedId]);
+    }
+    this.playerStatus.set('exerciseDone');
+  }
+
+  private clearPlayerTicker(): void {
+    if (this.playerTicker !== undefined) {
+      window.clearInterval(this.playerTicker);
+      this.playerTicker = undefined;
+    }
+  }
+
+  private async requestWakeLock(): Promise<void> {
+    const api = (navigator as Navigator & {
+      wakeLock?: { request(type: 'screen'): Promise<ScreenWakeLockHandle> };
+    }).wakeLock;
+    if (!api) {
+      this.playerWakeLockStatus.set('unsupported');
+      return;
+    }
+
+    this.playerWakeLockStatus.set('pending');
+    try {
+      const lock = await api.request('screen');
+      if (!this.showPlayer() || this.playerStatus() !== 'running' || document.visibilityState === 'hidden') {
+        await lock.release();
+        return;
+      }
+      this.wakeLock = lock;
+      this.playerWakeLockStatus.set('active');
+    } catch {
+      this.playerWakeLockStatus.set('unavailable');
+    }
+  }
+
+  private async releaseWakeLock(): Promise<void> {
+    const lock = this.wakeLock;
+    this.wakeLock = undefined;
+    if (lock) {
+      try {
+        await lock.release();
+      } catch {
+        // The browser may already have released the lock.
+      }
+    }
+    if (this.playerWakeLockStatus() !== 'unsupported') {
+      this.playerWakeLockStatus.set('unavailable');
+    }
+  }
+
+  private finishPlayer(): void {
+    const completedCount = this.completedPlayerExerciseIds().length;
+    this.exitPlayer();
+    const exerciseWord = completedCount === 1 ? 'övning' : 'övningar';
+    this.notify(`Snyggt jobbat! ${completedCount} ${exerciseWord} klara.`);
   }
 
   toggleBuilderExercise(id: number): void {
