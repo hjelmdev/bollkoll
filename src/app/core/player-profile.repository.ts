@@ -70,7 +70,6 @@ export class LocalPlayerProfileRepository implements PlayerProfileRepository {
       favoriteExerciseIds: [],
       savedWorkouts: starterWorkouts.map((workout) => ({ ...workout, exerciseIds: [...workout.exerciseIds] })),
       workoutSessions,
-      firstWorkoutPromptSeen: workoutSessions.length > 0,
       createdAt: now,
       updatedAt: now,
     };
@@ -98,7 +97,6 @@ export class LocalPlayerProfileRepository implements PlayerProfileRepository {
       workoutSessions: profile.workoutSessions.filter((session): session is WorkoutSession =>
         this.isWorkoutSession(session),
       ),
-      firstWorkoutPromptSeen: profile.firstWorkoutPromptSeen === true,
       createdAt: typeof profile.createdAt === 'string' ? profile.createdAt : new Date().toISOString(),
       updatedAt: typeof profile.updatedAt === 'string' ? profile.updatedAt : new Date().toISOString(),
     };

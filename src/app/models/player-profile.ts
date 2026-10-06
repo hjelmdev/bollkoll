@@ -24,7 +24,6 @@ export interface PlayerProfile {
   favoriteExerciseIds: number[];
   savedWorkouts: SavedWorkout[];
   workoutSessions: WorkoutSession[];
-  firstWorkoutPromptSeen: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -98,7 +98,6 @@ export class App implements OnDestroy {
   readonly equipmentFilter = signal('Alla');
   readonly menuOpen = signal(false);
   readonly loginOpen = signal(false);
-  readonly nicknamePromptOpen = signal(false);
   readonly profileEditing = signal(false);
   readonly nicknameDraft = signal('');
   readonly infoMessage = signal('');
@@ -260,7 +259,6 @@ export class App implements OnDestroy {
   }
 
   customizeProfileFromPrompt(): void {
-    this.nicknamePromptOpen.set(false);
     this.selectTab('profile');
     this.startProfileEditing();
   }
@@ -505,10 +503,6 @@ export class App implements OnDestroy {
       ? `Snyggt jobbat, ${nickname}! ${completedCount} ${exerciseWord} klara.`
       : `Snyggt jobbat! ${completedCount} ${exerciseWord} klara.`);
 
-    if (!nickname && !this.activeProfile().firstWorkoutPromptSeen) {
-      this.profileRepository.updateActiveProfile((profile) => ({ ...profile, firstWorkoutPromptSeen: true }));
-      this.nicknamePromptOpen.set(true);
-    }
   }
 
   private saveCurrentWorkoutSession(): void {
