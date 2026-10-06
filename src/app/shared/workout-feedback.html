@@ -23,7 +23,10 @@
           <strong>Gör profilen personlig</strong>
           <p>Välj ett smeknamn så känns nästa pass ännu mer som ditt.</p>
         </div>
-        <button class="primary-button" type="button" (click)="profileRequested.emit()">Anpassa profil</button>
+        <button class="profile-button" type="button" (click)="profileRequested.emit()">
+          Anpassa profil
+          <span aria-hidden="true">→</span>
+        </button>
       </div>
     }
 
