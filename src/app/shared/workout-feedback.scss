@@ -64,9 +64,8 @@
 .profile-invitation { display: grid; justify-items: start; gap: .75rem; width: 100%; margin-top: .85rem; padding: 1rem; border: 1px solid var(--line); border-left: 3px solid var(--lime); border-radius: .9rem; background: white; text-align: left; }
 .profile-invitation strong { color: var(--green); font-size: .92rem; }
 .profile-invitation p { margin: .25rem 0 0; color: var(--muted); font-size: .8rem; line-height: 1.45; }
-.profile-button { display: inline-flex; width: 100%; min-height: 2.8rem; align-items: center; justify-content: space-between; gap: .75rem; border: 0; border-radius: 999px; padding: .35rem .4rem .35rem 1rem; background: var(--green); color: white; font: inherit; font-size: .84rem; font-weight: 800; cursor: pointer; transition: background-color .15s ease, transform .15s ease; }
-.profile-button span { display: grid; width: 2rem; aspect-ratio: 1; place-items: center; border-radius: 50%; background: var(--lime); color: var(--green); font-size: 1rem; line-height: 1; }
-.profile-button:hover { background: #205b4b; }
+.profile-button { display: inline-flex; min-width: 11.5rem; min-height: 2.9rem; align-items: center; justify-content: center; border: 1px solid #dce979; border-radius: .85rem; padding: .55rem 1rem; background: var(--lime); box-shadow: 0 2px 0 rgb(23 66 55 / 12%); color: var(--green); font: inherit; font-size: .84rem; font-weight: 800; cursor: pointer; transition: background-color .15s ease, transform .15s ease; }
+.profile-button:hover { background: #e2f58a; }
 .profile-button:active { transform: scale(.985); }
 .profile-button:focus-visible { outline: 3px solid var(--lime); outline-offset: 3px; }
 .feedback-close { min-height: 2.8rem; margin-top: 1rem; border: 0; padding: .5rem; background: transparent; color: var(--green); font: inherit; font-size: .84rem; font-weight: 750; cursor: pointer; }
@@ -74,5 +73,8 @@
 @media (min-width: 42rem) {
   .workout-feedback-screen { padding-inline: 2rem; }
   .profile-invitation { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
-  .profile-button { width: auto; min-width: 12rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-button { transition: none; }
 }

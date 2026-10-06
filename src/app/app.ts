@@ -129,6 +129,11 @@ export class App implements OnDestroy {
     }
   };
 
+  private readonly routeChangeHandler = (): void => {
+    this.restoreRouteFromLocation();
+    window.scrollTo(0, 0);
+  };
+
   readonly filteredExercises = computed(() => {
     const category = this.selectedCategory();
     const search = this.searchTerm().trim().toLocaleLowerCase('sv');
@@ -157,10 +162,15 @@ export class App implements OnDestroy {
 
   constructor() {
     document.addEventListener('visibilitychange', this.visibilityHandler);
+    window.addEventListener('popstate', this.routeChangeHandler);
+    window.addEventListener('hashchange', this.routeChangeHandler);
+    this.restoreRouteFromLocation();
   }
 
   ngOnDestroy(): void {
     document.removeEventListener('visibilitychange', this.visibilityHandler);
+    window.removeEventListener('popstate', this.routeChangeHandler);
+    window.removeEventListener('hashchange', this.routeChangeHandler);
     this.clearPlayerTicker();
     void this.releaseWakeLock();
     this.unlockBackgroundScroll();
@@ -170,8 +180,67 @@ export class App implements OnDestroy {
     this.activeTab.set(tab);
     this.menuOpen.set(false);
     this.quickGenerated.set(false);
+    this.writeRouteHash(this.fragmentForTab(tab));
     window.scrollTo(0, 0);
     requestAnimationFrame(() => window.scrollTo(0, 0));
+  }
+
+  private restoreRouteFromLocation(): void {
+    const fragment = window.location.hash.slice(1);
+    const [route, tabFragment, encodedSessionId] = fragment.split('/');
+
+    if (route === 'resultat' && tabFragment && encodedSessionId) {
+      const tab = this.tabForFragment(tabFragment);
+      let sessionId = '';
+      try {
+        sessionId = decodeURIComponent(encodedSessionId);
+      } catch {
+        // An invalid encoded id falls back to the linked tab below.
+      }
+      const session = this.workoutSessions().find((item) => item.id === sessionId);
+      if (tab && session) {
+        this.activeTab.set(tab);
+        this.workoutFeedbackSession.set(session);
+        return;
+      }
+      if (tab) {
+        this.activeTab.set(tab);
+        this.workoutFeedbackSession.set(null);
+        this.writeRouteHash(this.fragmentForTab(tab), true);
+        return;
+      }
+    }
+
+    const tab = this.tabForFragment(fragment);
+    this.activeTab.set(tab ?? 'home');
+    this.workoutFeedbackSession.set(null);
+    if (fragment && !tab) this.writeRouteHash('hem', true);
+  }
+
+  private fragmentForTab(tab: MainTab): string {
+    switch (tab) {
+      case 'home': return 'hem';
+      case 'train': return 'trana';
+      case 'workouts': return 'mina-pass';
+      case 'profile': return 'profil';
+    }
+  }
+
+  private tabForFragment(fragment: string): MainTab | undefined {
+    switch (fragment) {
+      case 'hem': return 'home';
+      case 'trana': return 'train';
+      case 'mina-pass': return 'workouts';
+      case 'profil': return 'profile';
+      default: return undefined;
+    }
+  }
+
+  private writeRouteHash(fragment: string, replace = false): void {
+    if (window.location.hash.slice(1) === fragment) return;
+    const url = `${window.location.pathname}${window.location.search}#${fragment}`;
+    if (replace) window.history.replaceState(null, '', url);
+    else window.history.pushState(null, '', url);
   }
 
   openQuickStart(): void {
@@ -220,6 +289,7 @@ export class App implements OnDestroy {
 
   closeWorkoutFeedback(): void {
     this.workoutFeedbackSession.set(null);
+    this.writeRouteHash(this.fragmentForTab(this.activeTab()), true);
   }
 
   generateQuickWorkout(): void {
@@ -466,6 +536,7 @@ export class App implements OnDestroy {
     const session = this.exitPlayer();
     if (!session) return;
     this.workoutFeedbackSession.set(session);
+    this.writeRouteHash(`resultat/${this.fragmentForTab(this.activeTab())}/${encodeURIComponent(session.id)}`);
   }
 
   private saveCurrentWorkoutSession(): WorkoutSession | undefined {

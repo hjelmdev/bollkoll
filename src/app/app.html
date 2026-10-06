@@ -1,5 +1,5 @@
 <header class="app-header">
-  <a class="brand" href="#hem" (click)="selectTab('home')" aria-label="Bollkoll startsida">
+  <a class="brand" href="#hem" (click)="$event.preventDefault(); selectTab('home')" aria-label="Bollkoll startsida">
     <span class="brand-mark" aria-hidden="true">B</span><span>Bollkoll</span>
   </a>
   <nav class="desktop-nav" aria-label="Huvudmeny">
