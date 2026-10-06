@@ -100,7 +100,7 @@ export class App implements OnDestroy {
   readonly trainingDaysProgressPercent = computed(() => Math.min(100, this.trainingDaysThisWeek() / 3 * 100));
   readonly exerciseProgressPercent = computed(() => Math.min(100, this.completedExerciseCount() / 5 * 100));
   readonly recentWorkout = computed(() => this.workoutSessions()[0] ?? null);
-  readonly showWorkoutFeedback = computed(() => this.workoutSessions().length > 0);
+  readonly workoutFeedbackSession = signal<WorkoutSession | null>(null);
   private playerEndAt = 0;
   private playerTicker?: number;
   private wakeLock?: ScreenWakeLockHandle;
@@ -214,7 +214,12 @@ export class App implements OnDestroy {
   }
 
   goToProfile(): void {
+    this.workoutFeedbackSession.set(null);
     this.selectTab('profile');
+  }
+
+  closeWorkoutFeedback(): void {
+    this.workoutFeedbackSession.set(null);
   }
 
   generateQuickWorkout(): void {
@@ -460,12 +465,7 @@ export class App implements OnDestroy {
   finishPlayer(): void {
     const session = this.exitPlayer();
     if (!session) return;
-    const completedCount = this.completedPlayerExerciseIds().length;
-    const nickname = this.activeProfile().nickname;
-    const exerciseWord = completedCount === 1 ? 'övning' : 'övningar';
-    const greeting = nickname ? `Snyggt jobbat, ${nickname}!` : 'Snyggt jobbat!';
-    const progress = `${session.completionPercent}% av passet · ${completedCount} av ${session.plannedExerciseIds.length} ${exerciseWord} klara.`;
-    this.notify(`${greeting} ${progress}`);
+    this.workoutFeedbackSession.set(session);
   }
 
   private saveCurrentWorkoutSession(): WorkoutSession | undefined {

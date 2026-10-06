@@ -1,15 +1,31 @@
-<aside class="workout-feedback" aria-label="Återkoppling från träningen">
-  <div class="feedback-copy">
-    <strong>@if (nickname(); as name) {Bra jobbat, {{ name }}!} @else {Bra jobbat!}</strong>
-    <p>Ditt pass är sparat.</p>
-  </div>
+<section class="workout-feedback-screen" aria-labelledby="workout-feedback-title">
+  <header class="feedback-header">
+    <span class="feedback-brand"><span class="brand-mark">B</span>Bollkoll</span>
+    <button class="icon-button" type="button" aria-label="Stäng träningsresultatet" (click)="closed.emit()">×</button>
+  </header>
 
-  @if (!nickname()) {
-    <div class="profile-invitation">
-      <span>Gör profilen personlig med ett smeknamn.</span>
-      <button type="button" (click)="profileIsOpen() ? nicknameRequested.emit() : profileRequested.emit()">
-        {{ profileIsOpen() ? 'Välj smeknamn' : 'Gå till profilen' }}
-      </button>
+  <main class="feedback-content">
+    <div class="feedback-emblem" aria-hidden="true">⚽</div>
+    <p class="feedback-kicker">Passet är sparat</p>
+    <h1 id="workout-feedback-title">@if (nickname(); as name) {Bra jobbat, {{ name }}!} @else {Bra jobbat!}</h1>
+    <p class="feedback-summary">{{ session().title }} · {{ formatDuration(session().durationSeconds) }}</p>
+
+    <div class="feedback-progress" aria-label="Passets resultat">
+      <strong>{{ session().completionPercent }}<span>%</span></strong>
+      <span>av passet</span>
+      <p>{{ session().completedExerciseIds.length }} av {{ session().plannedExerciseIds.length }} övningar klara</p>
     </div>
-  }
-</aside>
+
+    @if (!nickname()) {
+      <div class="profile-invitation">
+        <div>
+          <strong>Gör profilen personlig</strong>
+          <p>Välj ett smeknamn så känns nästa pass ännu mer som ditt.</p>
+        </div>
+        <button class="primary-button" type="button" (click)="profileRequested.emit()">Anpassa profil</button>
+      </div>
+    }
+
+    <button class="feedback-close" type="button" (click)="closed.emit()">Tillbaka till Bollkoll</button>
+  </main>
+</section>

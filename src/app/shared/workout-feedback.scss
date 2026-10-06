@@ -1,69 +1,59 @@
-:host {
-  display: block;
-  margin-top: .5rem;
-}
+:host { position: fixed; inset: 0; z-index: 80; display: block; }
 
-.workout-feedback {
-  display: grid;
-  gap: .65rem;
-  padding: .65rem .85rem;
-  border-left: 3px solid var(--lime);
-  background: #edf3e8;
-}
-
-.feedback-copy strong {
-  display: block;
-  color: var(--green);
-  font-size: .92rem;
-  line-height: 1.35;
-}
-
-.feedback-copy p {
-  margin: .12rem 0 0;
-  color: var(--muted);
-  font-size: .78rem;
-}
-
-.profile-invitation {
+.workout-feedback-screen {
   display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+  background: #f7f8f4;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.feedback-header {
+  display: flex;
+  width: min(100%, 42rem);
+  min-height: 3.5rem;
   align-items: center;
   justify-content: space-between;
-  gap: .75rem;
-  padding-top: .55rem;
-  border-top: 1px solid rgb(23 63 53 / 14%);
-  color: var(--ink);
-  font-size: .78rem;
-  line-height: 1.4;
+  margin-inline: auto;
 }
 
-.profile-invitation button {
-  flex: 0 0 auto;
-  border: 0;
-  border-bottom: 1px solid currentColor;
-  padding: .25rem 0;
-  background: transparent;
-  color: var(--green);
-  font: inherit;
-  font-weight: 750;
-  cursor: pointer;
+.feedback-brand { display: inline-flex; align-items: center; gap: .55rem; color: var(--ink); font-size: .95rem; font-weight: 850; }
+.brand-mark { display: grid; width: 2rem; aspect-ratio: 1; place-items: center; border-radius: .65rem; background: var(--green); color: white; }
+
+.feedback-content {
+  display: flex;
+  width: min(100%, 30rem);
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 1rem 0 2rem;
+  text-align: center;
 }
 
-.profile-invitation button:focus-visible {
-  outline: 2px solid var(--green);
-  outline-offset: 3px;
-}
+.feedback-emblem { display: grid; width: 5rem; aspect-ratio: 1; place-items: center; border-radius: 50%; background: #e9f0df; font-size: 2.4rem; }
+.feedback-kicker { margin: 1.15rem 0 .35rem; color: var(--green-soft); font-size: .8rem; font-weight: 750; }
+.feedback-content h1 { max-width: 100%; margin: 0; font-size: clamp(2rem, 8vw, 2.7rem); line-height: 1.05; letter-spacing: -.06em; }
+.feedback-summary { margin: .55rem 0 1.3rem; color: var(--muted); font-size: .9rem; }
+
+.feedback-progress { display: grid; justify-items: center; gap: .15rem; width: 100%; padding: 1.15rem; border-radius: 1.1rem; background: var(--green); color: white; }
+.feedback-progress > strong { color: var(--lime); font-size: 3.2rem; line-height: 1; letter-spacing: -.06em; }
+.feedback-progress > strong span { font-size: 1.8rem; }
+.feedback-progress > span { font-size: .83rem; font-weight: 700; }
+.feedback-progress p { margin: .65rem 0 0; color: rgb(255 255 255 / 82%); font-size: .82rem; }
+
+.profile-invitation { display: grid; justify-items: start; gap: .75rem; width: 100%; margin-top: .85rem; padding: 1rem; border: 1px solid var(--line); border-left: 3px solid var(--lime); border-radius: .9rem; background: white; text-align: left; }
+.profile-invitation strong { color: var(--green); font-size: .92rem; }
+.profile-invitation p { margin: .25rem 0 0; color: var(--muted); font-size: .8rem; line-height: 1.45; }
+.profile-invitation .primary-button { width: 100%; }
+.feedback-close { min-height: 2.8rem; margin-top: 1rem; border: 0; padding: .5rem; background: transparent; color: var(--green); font: inherit; font-size: .84rem; font-weight: 750; cursor: pointer; }
 
 @media (min-width: 42rem) {
-  .workout-feedback {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 1.25rem;
-    padding: .75rem 1rem;
-  }
-
-  .profile-invitation {
-    justify-content: flex-start;
-    border-top: 0;
-    padding-top: 0;
-  }
+  .workout-feedback-screen { padding-inline: 2rem; }
+  .profile-invitation { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .profile-invitation .primary-button { width: auto; }
 }

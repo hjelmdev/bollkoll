@@ -32,15 +32,6 @@
 </nav>
 
 <main class="page-shell">
-  @if (showWorkoutFeedback()) {
-    <app-workout-feedback
-      [nickname]="activeProfile().nickname"
-      [profileIsOpen]="activeTab() === 'profile'"
-      (profileRequested)="goToProfile()"
-      (nicknameRequested)="startProfileEditing()"
-    />
-  }
-
   @if (activeTab() === 'home') {
     <section class="hero" aria-labelledby="welcome-title">
       <p class="eyebrow">Din träning, din utveckling.</p>
@@ -160,6 +151,15 @@
       </div>
     }
   </div>
+}
+
+@if (workoutFeedbackSession(); as session) {
+  <app-workout-feedback
+    [session]="session"
+    [nickname]="activeProfile().nickname"
+    (closed)="closeWorkoutFeedback()"
+    (profileRequested)="goToProfile()"
+  />
 }
 
 @if (toast()) {<div class="toast" role="status">{{ toast() }}</div>}
