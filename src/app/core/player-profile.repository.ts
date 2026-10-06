@@ -1,5 +1,6 @@
-import { inject, InjectionToken, Injectable, Signal, signal } from '@angular/core';
-import { PlayerProfile, SavedWorkout, WorkoutSession } from '../models/player-profile';
+import { inject, InjectionToken, Injectable, signal } from '@angular/core';
+import type { Signal } from '@angular/core';
+import type { PlayerProfile, SavedWorkout, WorkoutSession } from '../models/player-profile.model';
 
 export interface PlayerProfileRepository {
   readonly activeProfile: Signal<PlayerProfile>;
