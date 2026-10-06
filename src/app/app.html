@@ -33,7 +33,7 @@
 
 <main class="page-shell">
   @if (showWorkoutFeedback()) {
-    <aside class="nickname-reminder workout-feedback"><div><strong>Bra jobbat! Ditt pass är sparat.</strong>@if (!activeProfile().nickname) {<p>Din profil är skapad. Gör den personlig med ett smeknamn.</p>}</div>@if (!activeProfile().nickname) {<button type="button" class="text-button" (click)="activeTab() === 'profile' ? startProfileEditing() : goToProfile()">{{ activeTab() === 'profile' ? 'Välj smeknamn →' : 'Gå till profilen →' }}</button>}</aside>
+    <aside class="nickname-reminder workout-feedback"><div><strong>@if (activeProfile().nickname; as nickname) {Bra jobbat, {{ nickname }}!} @else {Bra jobbat!} Ditt pass är sparat.</strong>@if (!activeProfile().nickname) {<p>Din profil är skapad. Gör den personlig med ett smeknamn.</p>}</div>@if (!activeProfile().nickname) {<button type="button" class="text-button" (click)="activeTab() === 'profile' ? startProfileEditing() : goToProfile()">{{ activeTab() === 'profile' ? 'Välj smeknamn →' : 'Gå till profilen →' }}</button>}</aside>
   }
 
   @if (activeTab() === 'home') {
