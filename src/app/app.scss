@@ -21,6 +21,9 @@
 .more-menu button { display: block; width: 100%; border: 0; border-radius: .65rem; padding: .75rem .65rem; background: transparent; color: var(--ink); font: inherit; font-size: .88rem; text-align: left; cursor: pointer; }
 .more-menu button:hover { background: #f2f5f0; }
 .mobile-nav { position: fixed; right: 0; bottom: 0; left: 0; z-index: 15; display: grid; grid-template-columns: repeat(4, 1fr); padding: .45rem .35rem calc(.45rem + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgb(255 255 255 / 96%); box-shadow: 0 -6px 24px rgb(23 36 31 / 5%); backdrop-filter: blur(16px); }
+@supports (height: 100dvh) {
+  .mobile-nav { bottom: calc(100dvh - 100vh); }
+}
 .mobile-nav-item { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: .12rem; border: 0; border-radius: .7rem; padding: .32rem .1rem; background: transparent; color: #76817b; font: inherit; font-size: .64rem; font-weight: 700; cursor: pointer; }
 .mobile-nav-item.active { color: var(--green); }
 .nav-icon { display: grid; min-height: 1.35rem; place-items: center; font-size: 1.2rem; line-height: 1; }
