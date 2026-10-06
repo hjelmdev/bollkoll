@@ -5,9 +5,9 @@ export interface WorkoutSession {
   title: string;
   startedAt: string;
   durationSeconds: number;
+  completionPercent: number;
   plannedExerciseIds: number[];
   completedExerciseIds: number[];
-  status: 'completed' | 'partial';
 }
 
 const STORAGE_KEY = 'bollkoll.workout-sessions.v1';
@@ -27,15 +27,31 @@ export class WorkoutHistoryService {
     try {
       const stored: unknown = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '[]');
       if (!Array.isArray(stored)) return [];
-      return stored.filter((item): item is WorkoutSession =>
+      return stored.filter((item) =>
         typeof item?.id === 'string' &&
         typeof item?.title === 'string' &&
         typeof item?.startedAt === 'string' &&
         Number.isFinite(item?.durationSeconds) &&
         Array.isArray(item?.plannedExerciseIds) &&
-        Array.isArray(item?.completedExerciseIds) &&
-        (item?.status === 'completed' || item?.status === 'partial'),
-      );
+        Array.isArray(item?.completedExerciseIds),
+      ).map((item): WorkoutSession => {
+        const legacyPercent = item.status === 'completed'
+          ? 100
+          : item.plannedExerciseIds.length > 0
+            ? Math.round(item.completedExerciseIds.length / item.plannedExerciseIds.length * 100)
+            : 0;
+        return {
+          id: item.id,
+          title: item.title,
+          startedAt: item.startedAt,
+          durationSeconds: item.durationSeconds,
+          completionPercent: Number.isFinite(item.completionPercent)
+            ? Math.min(100, Math.max(0, Math.round(item.completionPercent)))
+            : legacyPercent,
+          plannedExerciseIds: item.plannedExerciseIds,
+          completedExerciseIds: item.completedExerciseIds,
+        };
+      });
     } catch {
       return [];
     }

@@ -120,7 +120,8 @@ export class App implements OnDestroy {
   readonly playerStatus = signal<PlayerStatus>('paused');
   readonly playerWakeLockStatus = signal<WakeLockStatus>('unsupported');
   readonly completedPlayerExerciseIds = signal<number[]>([]);
-  readonly completedWorkoutCount = computed(() => this.workoutSessions().filter((session) => session.status === 'completed').length);
+  readonly playerElapsedSeconds = signal<number[]>([]);
+  readonly completedWorkoutCount = computed(() => this.workoutSessions().filter((session) => session.completionPercent === 100).length);
   readonly trainingMinutes = computed(() => {
     const seconds = this.workoutSessions().reduce((total, session) => total + session.durationSeconds, 0);
     return seconds > 0 ? Math.max(1, Math.round(seconds / 60)) : 0;
@@ -273,6 +274,7 @@ export class App implements OnDestroy {
     this.playerStartedAt = new Date().toISOString();
     this.playerSessionSaved = false;
     this.playerExerciseIds.set(validIds);
+    this.playerElapsedSeconds.set(validIds.map(() => 0));
     this.playerIndex.set(0);
     this.completedPlayerExerciseIds.set([]);
     this.lockBackgroundScroll();
@@ -312,6 +314,7 @@ export class App implements OnDestroy {
   }
 
   skipPlayerExercise(): void {
+    if (this.playerStatus() === 'running') this.updatePlayerCountdown();
     if (this.playerStatus() === 'exerciseDone') return;
     if (this.playerIndex() + 1 >= this.playerExerciseIds().length) {
       this.exitPlayer();
@@ -323,6 +326,7 @@ export class App implements OnDestroy {
   }
 
   exitPlayer(): void {
+    if (this.playerStatus() === 'running') this.updatePlayerCountdown();
     this.saveCurrentWorkoutSession();
     this.clearPlayerTicker();
     this.showPlayer.set(false);
@@ -367,6 +371,15 @@ export class App implements OnDestroy {
   private updatePlayerCountdown(): void {
     if (this.playerStatus() !== 'running') return;
     const secondsLeft = Math.max(0, Math.ceil((this.playerEndAt - Date.now()) / 1000));
+    const exercise = this.playerExercise();
+    if (exercise) {
+      const elapsedSeconds = exercise.durationSeconds - secondsLeft;
+      this.playerElapsedSeconds.update((elapsed) => {
+        const next = [...elapsed];
+        next[this.playerIndex()] = Math.max(next[this.playerIndex()] ?? 0, elapsedSeconds);
+        return next;
+      });
+    }
     if (secondsLeft !== this.playerRemaining()) this.playerRemaining.set(secondsLeft);
     if (secondsLeft > 0) return;
 
@@ -461,13 +474,14 @@ export class App implements OnDestroy {
   }
 
   private saveCurrentWorkoutSession(): void {
-    if (this.playerSessionSaved || this.completedPlayerExerciseIds().length === 0) return;
-    this.playerSessionSaved = true;
-
+    if (this.playerSessionSaved) return;
     const plannedExerciseIds = [...this.playerExerciseIds()];
     const completedExerciseIds = [...this.completedPlayerExerciseIds()];
-    const durationSeconds = completedExerciseIds.reduce((total, id) => total + (this.exerciseById(id)?.durationSeconds ?? 0), 0);
-    const status = completedExerciseIds.length === plannedExerciseIds.length ? 'completed' : 'partial';
+    const durationSeconds = this.playerElapsedSeconds().reduce((total, seconds) => total + seconds, 0);
+    if (durationSeconds === 0) return;
+    this.playerSessionSaved = true;
+
+    const plannedSeconds = plannedExerciseIds.reduce((total, id) => total + (this.exerciseById(id)?.durationSeconds ?? 0), 0);
     const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -477,9 +491,9 @@ export class App implements OnDestroy {
       title: this.playerTitle(),
       startedAt: this.playerStartedAt,
       durationSeconds,
+      completionPercent: plannedSeconds > 0 ? Math.min(100, Math.floor(durationSeconds / plannedSeconds * 100)) : 0,
       plannedExerciseIds,
       completedExerciseIds,
-      status,
     });
   }
 
