@@ -32,8 +32,8 @@
 </nav>
 
 <main class="page-shell">
-  @if (showNicknameReminder() && !profileEditing()) {
-    <aside class="nickname-reminder workout-feedback"><div><strong>Bra jobbat! Ditt pass är sparat.</strong><p>Gör profilen personlig med ett smeknamn.</p></div><button type="button" class="text-button" (click)="activeTab() === 'profile' ? startProfileEditing() : goToProfile()">{{ activeTab() === 'profile' ? 'Välj smeknamn →' : 'Gå till profilen →' }}</button></aside>
+  @if (showWorkoutFeedback()) {
+    <aside class="nickname-reminder workout-feedback"><div><strong>Bra jobbat! Ditt pass är sparat.</strong>@if (!activeProfile().nickname) {<p>Din profil är skapad. Gör den personlig med ett smeknamn.</p>}</div>@if (!activeProfile().nickname) {<button type="button" class="text-button" (click)="activeTab() === 'profile' ? startProfileEditing() : goToProfile()">{{ activeTab() === 'profile' ? 'Välj smeknamn →' : 'Gå till profilen →' }}</button>}</aside>
   }
 
   @if (activeTab() === 'home') {

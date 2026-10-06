@@ -145,7 +145,7 @@ export class App implements OnDestroy {
   readonly trainingDaysProgressPercent = computed(() => Math.min(100, this.trainingDaysThisWeek() / 3 * 100));
   readonly exerciseProgressPercent = computed(() => Math.min(100, this.completedExerciseCount() / 5 * 100));
   readonly recentWorkout = computed(() => this.workoutSessions()[0] ?? null);
-  readonly showNicknameReminder = computed(() => !this.activeProfile().nickname && this.workoutSessions().length > 0);
+  readonly showWorkoutFeedback = computed(() => this.workoutSessions().length > 0);
   private playerEndAt = 0;
   private playerTicker?: number;
   private wakeLock?: ScreenWakeLockHandle;
