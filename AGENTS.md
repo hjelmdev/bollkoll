@@ -33,4 +33,5 @@
 - Gör minsta sammanhängande ändring som uppfyller uppgiften. Hitta inte på produktkrav som saknas i kontexten; skriv ut antaganden när de påverkar lösningen.
 - Ändra inte teknikstack, produktomfattning eller datalagringsstrategi utan uttryckligt önskemål.
 - Kör Angular-bygget efter ändringar i Angular-kod utan att invänta separat begäran. Använd `pnpm exec ng build --base-href=/bollkoll/` för att motsvara GitHub Pages-publiceringen. Kör tester endast när användaren ber om det och rapportera buildresultat och relevanta begränsningar.
+- Om terminalen misslyckas innan kommandot startar med `helper_unknown_error: setup refresh had errors`, upprepa inte samma försök flera gånger. Prova det nödvändiga projektkommandot en gång med `sandbox_permissions: require_escalated` och en tydlig motivering. Använd utökad åtkomst endast för det avgränsade kommandot som behövs för uppgiften.
 - Avsluta med en kort sammanfattning av ändringar, viktiga beslut och eventuella begränsningar.
