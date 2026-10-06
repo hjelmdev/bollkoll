@@ -9,7 +9,7 @@ import type { WorkoutSession } from '../models/player-profile.model';
 })
 export class WorkoutFeedback {
   readonly session = input.required<WorkoutSession>();
-  readonly exercises = input<Exercise[]>([]);
+  readonly exercises = input<readonly Exercise[]>([]);
   readonly nickname = input<string | null>(null);
   readonly closed = output<void>();
   readonly profileRequested = output<void>();

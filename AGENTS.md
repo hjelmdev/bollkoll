@@ -21,10 +21,16 @@
 - Bevara pixelgrafikens skärpa med `image-rendering: pixelated` när sådana tillgångar införs.
 - Lägg inte till beroenden, konton, telemetri eller externa tjänster utan ett tydligt behov i uppgiften.
 
+## Skills
+
+- Använd `frontend-design` för alla uppgifter som skapar, ändrar eller granskar spelarens eller administratörens UI, även när uppgiften främst beskrivs som en funktion. Läs `.agents/skills/frontend-design/SKILL.md` och följ dess designvägledning genom hela UI-arbetet. Anpassa generella exempel till Angular och följ alltid produktkontexten ovan.
+- Använd `angular-developer` när en uppgift skapar eller ändrar Angular-kod, inklusive komponenter, mallar, tjänster, routing, styling eller Angular-arkitektur. Läs `.agents/skills/angular-developer/SKILL.md` och relevanta referenser därifrån.
+- Använd båda skillsen när en uppgift både påverkar Angular-implementationen och användargränssnittets utformning. Skill-instruktioner kompletterar projektets riktlinjer och får inte ändra produktomfattning, teknikstack eller arbetsflödesregler.
+
 ## Arbetsflöde
 
 - Kontrollera först befintlig kod, konfiguration och versionskontrollstatus. Bevara lokala ändringar och följ etablerade mönster där de finns.
 - Gör minsta sammanhängande ändring som uppfyller uppgiften. Hitta inte på produktkrav som saknas i kontexten; skriv ut antaganden när de påverkar lösningen.
 - Ändra inte teknikstack, produktomfattning eller datalagringsstrategi utan uttryckligt önskemål.
-- Kör inte tester eller andra verifieringskommandon om användaren inte ber om verifiering. Om verifiering uttryckligen efterfrågas, kör relevanta kommandon och rapportera resultatet.
+- Kör Angular-bygget efter ändringar i Angular-kod utan att invänta separat begäran. Använd `pnpm exec ng build --base-href=/bollkoll/` för att motsvara GitHub Pages-publiceringen. Kör tester endast när användaren ber om det och rapportera buildresultat och relevanta begränsningar.
 - Avsluta med en kort sammanfattning av ändringar, viktiga beslut och eventuella begränsningar.
