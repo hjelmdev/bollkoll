@@ -67,6 +67,12 @@ export class App implements OnDestroy {
   readonly quickSpace = signal('Liten yta');
   readonly quickMinutes = signal(10);
   readonly quickGenerated = signal(false);
+  readonly quickPlanIds = signal<number[]>([]);
+  readonly quickPlanExercises = computed(() => this.quickPlanIds()
+    .map((id) => this.exerciseById(id))
+    .filter((exercise): exercise is Exercise => exercise !== undefined));
+  readonly quickPlanDurationSeconds = computed(() => this.quickPlanExercises()
+    .reduce((total, exercise) => total + exercise.durationSeconds, 0));
   readonly builderOpen = signal(false);
   readonly builderSelection = signal<number[]>([1, 2, 5]);
   readonly selectedWorkoutId = signal<string | null>(null);
@@ -299,9 +305,54 @@ export class App implements OnDestroy {
       this.notify('Inga övningar matchar de valen ännu. Prova ett annat filter.');
       return;
     }
+    this.quickPlanIds.set(this.pickQuickExerciseIds());
     this.quickGenerated.set(true);
-    this.notify(`${Math.min(this.plannedExerciseCount(), this.quickMatches().length)} övningar är klara att köra.`);
+    this.notify(`${this.quickPlanIds().length} övningar är klara att köra.`);
     window.setTimeout(() => this.generatedPanel?.nativeElement.scrollIntoView({ behavior: this.scrollBehavior(), block: 'start' }));
+  }
+
+  replaceQuickExercise(index: number): void {
+    const selectedIds = this.quickPlanIds();
+    const currentId = selectedIds[index];
+    const alternatives = this.quickMatches().filter((exercise) => !selectedIds.includes(exercise.id) && exercise.id !== currentId);
+    if (alternatives.length === 0) {
+      this.notify('Det finns inga fler övningar som passar just de här valen.');
+      return;
+    }
+    const alternativeIds = this.rankQuickExercises(alternatives, selectedIds.filter((_, selectedIndex) => selectedIndex !== index));
+    this.quickPlanIds.update((ids) => ids.map((id, selectedIndex) => selectedIndex === index ? alternativeIds[0] : id));
+  }
+
+  private pickQuickExerciseIds(): number[] {
+    return this.rankQuickExercises(this.quickMatches(), []).slice(0, this.plannedExerciseCount());
+  }
+
+  private rankQuickExercises(candidates: readonly Exercise[], alreadySelected: readonly number[]): number[] {
+    const sessions = this.workoutSessions();
+    const useCount = new Map<number, number>();
+    for (const session of sessions) {
+      for (const exerciseId of new Set(session.plannedExerciseIds)) {
+        useCount.set(exerciseId, (useCount.get(exerciseId) ?? 0) + 1);
+      }
+    }
+
+    const chosen = [...alreadySelected];
+    const remaining = [...candidates].filter((exercise) => !chosen.includes(exercise.id));
+    const result: number[] = [];
+    while (remaining.length > 0) {
+      const chosenFocuses = new Set(chosen.flatMap((id) => this.exerciseById(id)?.focusAreas ?? []));
+      const ranked = remaining
+        .map((exercise) => ({
+          exercise,
+          score: (useCount.get(exercise.id) ?? 0) * 4 + exercise.focusAreas.filter((focus) => chosenFocuses.has(focus)).length * 2 + Math.random(),
+        }))
+        .sort((first, second) => first.score - second.score);
+      const next = ranked[0].exercise;
+      result.push(next.id);
+      chosen.push(next.id);
+      remaining.splice(remaining.findIndex((exercise) => exercise.id === next.id), 1);
+    }
+    return result;
   }
 
   editQuickChoices(): void {
@@ -310,7 +361,7 @@ export class App implements OnDestroy {
   }
 
   startQuickWorkout(): void {
-    this.startPlayer(this.quickMatches().slice(0, this.plannedExerciseCount()).map((exercise) => exercise.id), 'Snabbpass');
+    this.startPlayer(this.quickPlanIds(), 'Snabbpass');
   }
 
   plannedExerciseCount(): number {
