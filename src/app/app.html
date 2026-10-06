@@ -117,7 +117,7 @@
 }
 
 @if (showPlayer()) {
-  <div class="player-screen">
+  <div class="player-screen" #playerScreen>
     <header><div><span class="player-brand">Bollkoll</span><small class="player-title">{{ playerTitle() }}</small></div><button class="icon-button" type="button" aria-label="Avsluta passet" (click)="exitPlayer()">×</button></header>
     @if (playerExercise(); as exercise) {
       <div class="player-progress"><span>ÖVNING {{ playerIndex() + 1 }} AV {{ playerExerciseIds().length }}</span><div><i [style.width.%]="playerProgressPercent()"></i></div></div>

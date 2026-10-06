@@ -55,6 +55,7 @@ interface ScreenWakeLockHandle {
 export class App implements OnDestroy {
   @ViewChild('quickPanel') private quickPanel?: ElementRef<HTMLElement>;
   @ViewChild('generatedPanel') private generatedPanel?: ElementRef<HTMLElement>;
+  @ViewChild('playerScreen') private playerScreen?: ElementRef<HTMLElement>;
 
   readonly tabs: { id: MainTab; label: string; icon: string }[] = [
     { id: 'home', label: 'Hem', icon: '⌂' },
@@ -121,6 +122,14 @@ export class App implements OnDestroy {
   private wakeLock?: ScreenWakeLockHandle;
   private lockedScrollY = 0;
   private previousBodyStyles?: { position: string; top: string; width: string; overflow: string };
+  private previousDocumentOverflow = '';
+
+  private readonly preventBackgroundTouchScroll = (event: TouchEvent): void => {
+    if (!this.showPlayer()) return;
+    const target = event.target;
+    if (target instanceof Node && this.playerScreen?.nativeElement.contains(target)) return;
+    event.preventDefault();
+  };
 
   private readonly visibilityHandler = (): void => {
     if (document.visibilityState === 'hidden') {
@@ -346,16 +355,21 @@ export class App implements OnDestroy {
       overflow: body.style.overflow,
     };
     this.lockedScrollY = window.scrollY;
+    this.previousDocumentOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
     body.style.position = 'fixed';
     body.style.top = `-${this.lockedScrollY}px`;
     body.style.width = '100%';
     body.style.overflow = 'hidden';
+    document.addEventListener('touchmove', this.preventBackgroundTouchScroll, { capture: true, passive: false });
   }
 
   private unlockBackgroundScroll(): void {
     const previous = this.previousBodyStyles;
     if (!previous) return;
+    document.removeEventListener('touchmove', this.preventBackgroundTouchScroll, true);
     Object.assign(document.body.style, previous);
+    document.documentElement.style.overflow = this.previousDocumentOverflow;
     this.previousBodyStyles = undefined;
     window.scrollTo(0, this.lockedScrollY);
   }
