@@ -74,7 +74,7 @@ export class App implements OnDestroy {
   readonly playerWakeLockStatus = signal<WakeLockStatus>('unsupported');
   readonly completedPlayerExerciseIds = signal<number[]>([]);
   readonly playerElapsedSeconds = signal<number[]>([]);
-  readonly completedWorkoutCount = computed(() => this.workoutSessions().filter((session) => session.completionPercent === 100).length);
+  readonly workoutCount = computed(() => this.workoutSessions().length);
   readonly trainingMinutes = computed(() => {
     const seconds = this.workoutSessions().reduce((total, session) => total + session.durationSeconds, 0);
     return seconds > 0 ? Math.max(1, Math.round(seconds / 60)) : 0;
