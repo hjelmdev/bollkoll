@@ -531,6 +531,14 @@ PWA:n ska byggas med framtida native-app i åtanke, men MVP:n är en webbapp. Om
 - Anpassa layout, navigation och informationsmängd för surfplatta och desktop i stället för att enbart skala upp mobilvyn.
 - Om en administrativ yta införs får den optimeras för desktop och arbete med större mängder innehåll, men ska vara responsiv.
 
+## Navigation och deeplänkar
+
+- Huvudvyer och sparade träningsresultat ska kunna öppnas direkt via en URL och visas rätt efter omladdning.
+- Använd Angular Router med separata routes för appens huvudvyer och träningsresultat. Resultatroute ska identifiera ett sparat pass och visa en tydlig reservvy om passet inte finns lokalt.
+- Välj en URL-strategi som fungerar på vald hosting. På GitHub Pages behöver path-baserade routes exempelvis en `404.html`-fallback; Angulars hash-location är ett alternativ om hostingens fallback inte kan konfigureras.
+- Den nuvarande hashnavigeringen i prototypen är en tillfällig lösning. Resultatlänkar bygger på lokal lagring och kan därför inte visa samma pass på en annan enhet förrän konto och synk mellan enheter finns.
+- Native app links/universal links utvärderas separat om appen paketeras för iOS eller Android.
+
 ## Backend
 
 Ingen backend krävs i första versionen.
@@ -602,6 +610,7 @@ Fokus ska vara på appstommen.
 
 ## Prioritet 2
 
+- Angular Router med deeplänkar till huvudvyer och sparade träningsresultat, inklusive refresh och webbläsarens bakåt/framåt.
 - välj övningar
 - bygg ett pass
 - starta pass
