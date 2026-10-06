@@ -69,6 +69,11 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.045em; }
 .recent-card { align-items: flex-start; flex-direction: column; gap: .2rem; }
 .recent-card .section-heading { width: 100%; margin-bottom: .25rem; }
 .recent-time { color: var(--muted); font-size: .7rem; }
+.nickname-reminder { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-top: .75rem; border: 1px solid #dce7dc; border-radius: 1rem; padding: .85rem; background: #edf4e8; }
+.nickname-reminder > div { flex: 1; }
+.nickname-reminder strong { color: var(--green); font-size: .78rem; }
+.nickname-reminder p { margin: .2rem 0 0; color: var(--muted); font-size: .7rem; line-height: 1.4; }
+.profile-reminder { margin-top: .7rem; }
 .text-button { border: 0; padding: .3rem 0; background: transparent; color: var(--green-soft); font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; }
 .page-footer { padding: 1.2rem 0 .4rem; color: var(--muted); font-size: .7rem; text-align: center; }
 .screen-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: .5rem 0 1.2rem; }
@@ -141,12 +146,18 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.045em; }
 .workout-preview { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .75rem; }
 .workout-preview span { border-radius: 999px; padding: .3rem .5rem; background: #f3f5f1; color: #59675e; font-size: .6rem; font-weight: 700; }
 .workout-content > .primary-button { width: 100%; min-height: 2.5rem; }
-.profile-card { display: flex; align-items: center; gap: .8rem; border: 1px solid var(--line); border-radius: 1.1rem; padding: .9rem; background: #fff; }
+.profile-card { display: flex; align-items: flex-start; gap: .8rem; border: 1px solid var(--line); border-radius: 1.1rem; padding: .9rem; background: #fff; }
 .avatar { position: relative; display: grid; flex: 0 0 3.5rem; aspect-ratio: 1; place-items: center; border: 3px solid #d6ef83; border-radius: 50%; background: #e7f0df; color: var(--green); font-size: 1.4rem; font-weight: 900; }
 .avatar-status { position: absolute; right: -.15rem; bottom: -.15rem; display: grid; width: 1.2rem; aspect-ratio: 1; place-items: center; border: 2px solid white; border-radius: 50%; background: var(--green); color: #fff; font-size: .6rem; }
 .profile-details { flex: 1; }
 .profile-details h2 { margin: .15rem 0; font-size: 1.05rem; }
 .profile-details p { margin-bottom: 0; color: var(--muted); font-size: .73rem; }
+.profile-details { min-width: 0; }
+.nickname-field { display: grid; gap: .35rem; margin-top: .35rem; color: var(--muted); font-size: .72rem; font-weight: 750; }
+.nickname-field input { width: 100%; box-sizing: border-box; min-height: 2.65rem; border: 1px solid var(--line); border-radius: .7rem; padding: 0 .65rem; background: #fafbf9; color: var(--ink); font: inherit; font-size: .85rem; }
+.nickname-field small { color: var(--muted); font-size: .62rem; font-weight: 500; line-height: 1.4; }
+.nickname-actions { display: flex; align-items: center; gap: .5rem; margin-top: .55rem; }
+.nickname-actions .primary-button { min-height: 2.4rem; padding: .55rem .7rem; font-size: .72rem; }
 .edit-button { flex-shrink: 0; }
 .ghost-button { flex-shrink: 0; border: 1px solid var(--line); border-radius: .8rem; padding: .65rem .8rem; background: white; color: var(--green); font: inherit; font-size: .72rem; font-weight: 800; cursor: pointer; }
 .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; padding-top: .7rem; }
@@ -184,6 +195,7 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.045em; }
 .login-label { margin: 1rem 0 .7rem; }
 .login-label input { min-height: 3rem; font-size: .88rem; }
 .login-dialog > .primary-button, .info-dialog > .primary-button { width: 100%; }
+.prompt-later { width: 100%; margin-top: .35rem; }
 .privacy-note { display: block; margin-top: .8rem; color: var(--muted); font-size: .65rem; line-height: 1.4; text-align: center; }
 .builder-dialog { width: min(100%, 35rem); }
 .builder-dialog > .primary-button { width: 100%; margin-top: .8rem; }

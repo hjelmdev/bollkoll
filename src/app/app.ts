@@ -1,5 +1,6 @@
 import { Component, computed, ElementRef, inject, OnDestroy, signal, ViewChild } from '@angular/core';
-import { WorkoutHistoryService } from './workout-history.service';
+import { PLAYER_PROFILE_REPOSITORY } from './core/player-profile.repository';
+import { SavedWorkout, WorkoutSession } from './models/player-profile';
 
 type MainTab = 'home' | 'train' | 'workouts' | 'profile';
 
@@ -33,14 +34,6 @@ function exercise(
   return { id, name, focusAreas, participants, environments, spaces, equipment, tags, durationSeconds, description, difficulty };
 }
 
-interface SavedWorkout {
-  id: number;
-  name: string;
-  focus: string;
-  minutes: number;
-  exerciseIds: number[];
-}
-
 type PlayerStatus = 'ready' | 'running' | 'paused' | 'exerciseDone';
 type WakeLockStatus = 'pending' | 'active' | 'unavailable' | 'unsupported';
 
@@ -57,6 +50,12 @@ export class App implements OnDestroy {
   @ViewChild('quickPanel') private quickPanel?: ElementRef<HTMLElement>;
   @ViewChild('generatedPanel') private generatedPanel?: ElementRef<HTMLElement>;
   @ViewChild('playerScreen') private playerScreen?: ElementRef<HTMLElement>;
+
+  private readonly profileRepository = inject(PLAYER_PROFILE_REPOSITORY);
+  readonly activeProfile = this.profileRepository.activeProfile;
+  readonly favorites = computed(() => this.activeProfile().favoriteExerciseIds);
+  readonly savedWorkouts = computed(() => this.activeProfile().savedWorkouts);
+  readonly workoutSessions = computed(() => this.activeProfile().workoutSessions);
 
   readonly tabs: { id: MainTab; label: string; icon: string }[] = [
     { id: 'home', label: 'Hem', icon: '⌂' },
@@ -93,13 +92,15 @@ export class App implements OnDestroy {
   readonly selectedCategory = signal('Alla');
   readonly favoritesOnly = signal(false);
   readonly searchTerm = signal('');
-  readonly favorites = signal<number[]>([1, 5, 8]);
   readonly participantFilter = signal('Alla');
   readonly environmentFilter = signal('Alla');
   readonly spaceFilter = signal('Alla');
   readonly equipmentFilter = signal('Alla');
   readonly menuOpen = signal(false);
   readonly loginOpen = signal(false);
+  readonly nicknamePromptOpen = signal(false);
+  readonly profileEditing = signal(false);
+  readonly nicknameDraft = signal('');
   readonly infoMessage = signal('');
   readonly toast = signal('');
   readonly quickFocus = signal('Bollkontroll');
@@ -111,8 +112,6 @@ export class App implements OnDestroy {
   readonly builderOpen = signal(false);
   readonly builderSelection = signal<number[]>([1, 2, 5]);
   readonly showPlayer = signal(false);
-  readonly workoutHistory = inject(WorkoutHistoryService);
-  readonly workoutSessions = this.workoutHistory.sessions;
   readonly playerExerciseIds = signal<number[]>([]);
   readonly playerIndex = signal(0);
   readonly playerTitle = signal('Dagens snabbpass');
@@ -147,6 +146,7 @@ export class App implements OnDestroy {
   readonly trainingDaysProgressPercent = computed(() => Math.min(100, this.trainingDaysThisWeek() / 3 * 100));
   readonly exerciseProgressPercent = computed(() => Math.min(100, this.completedExerciseCount() / 5 * 100));
   readonly recentWorkout = computed(() => this.workoutSessions()[0] ?? null);
+  readonly showNicknameReminder = computed(() => !this.activeProfile().nickname && this.workoutSessions().length > 0);
   private playerEndAt = 0;
   private playerTicker?: number;
   private wakeLock?: ScreenWakeLockHandle;
@@ -174,12 +174,6 @@ export class App implements OnDestroy {
       void this.requestWakeLock();
     }
   };
-
-  readonly savedWorkouts = signal<SavedWorkout[]>([
-    { id: 101, name: 'Snabba fötter', focus: 'Bollkontroll · snabbhet', minutes: 10, exerciseIds: [1, 8, 4, 15] },
-    { id: 102, name: 'Vägg & touch', focus: 'Passning · bollkontroll', minutes: 12, exerciseIds: [5, 6, 11, 2] },
-    { id: 103, name: 'Lördag med kompis', focus: 'Passning · koordination', minutes: 15, exerciseIds: [9, 13, 16] },
-  ]);
 
   readonly filteredExercises = computed(() => {
     const category = this.selectedCategory();
@@ -232,7 +226,43 @@ export class App implements OnDestroy {
   }
 
   toggleFavorite(id: number): void {
-    this.favorites.update((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
+    this.profileRepository.updateActiveProfile((profile) => ({
+      ...profile,
+      favoriteExerciseIds: profile.favoriteExerciseIds.includes(id)
+        ? profile.favoriteExerciseIds.filter((item) => item !== id)
+        : [...profile.favoriteExerciseIds, id],
+    }));
+  }
+
+  profileInitial(): string {
+    return this.activeProfile().nickname?.trim().charAt(0).toLocaleUpperCase('sv') || 'B';
+  }
+
+  startProfileEditing(): void {
+    this.nicknameDraft.set(this.activeProfile().nickname ?? '');
+    this.profileEditing.set(true);
+  }
+
+  cancelProfileEditing(): void {
+    this.profileEditing.set(false);
+    this.nicknameDraft.set(this.activeProfile().nickname ?? '');
+  }
+
+  saveNickname(): void {
+    const nickname = this.nicknameDraft().trim().slice(0, 20);
+    if (!nickname) {
+      this.notify('Skriv ett smeknamn först.');
+      return;
+    }
+    this.profileRepository.updateActiveProfile((profile) => ({ ...profile, nickname }));
+    this.profileEditing.set(false);
+    this.notify(`Snyggt, ${nickname}! Din profil är uppdaterad.`);
+  }
+
+  customizeProfileFromPrompt(): void {
+    this.nicknamePromptOpen.set(false);
+    this.selectTab('profile');
+    this.startProfileEditing();
   }
 
   generateQuickWorkout(): void {
@@ -468,9 +498,17 @@ export class App implements OnDestroy {
 
   private finishPlayer(): void {
     const completedCount = this.completedPlayerExerciseIds().length;
+    const nickname = this.activeProfile().nickname;
     this.exitPlayer();
     const exerciseWord = completedCount === 1 ? 'övning' : 'övningar';
-    this.notify(`Snyggt jobbat! ${completedCount} ${exerciseWord} klara.`);
+    this.notify(nickname
+      ? `Snyggt jobbat, ${nickname}! ${completedCount} ${exerciseWord} klara.`
+      : `Snyggt jobbat! ${completedCount} ${exerciseWord} klara.`);
+
+    if (!nickname && !this.activeProfile().firstWorkoutPromptSeen) {
+      this.profileRepository.updateActiveProfile((profile) => ({ ...profile, firstWorkoutPromptSeen: true }));
+      this.nicknamePromptOpen.set(true);
+    }
   }
 
   private saveCurrentWorkoutSession(): void {
@@ -482,19 +520,20 @@ export class App implements OnDestroy {
     this.playerSessionSaved = true;
 
     const plannedSeconds = plannedExerciseIds.reduce((total, id) => total + (this.exerciseById(id)?.durationSeconds ?? 0), 0);
-    const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-    this.workoutHistory.addSession({
-      id,
+    const session: WorkoutSession = {
+      id: this.createRecordId(),
       title: this.playerTitle(),
       startedAt: this.playerStartedAt,
       durationSeconds,
+      plannedDurationSeconds: plannedSeconds,
       completionPercent: plannedSeconds > 0 ? Math.min(100, Math.floor(durationSeconds / plannedSeconds * 100)) : 0,
       plannedExerciseIds,
       completedExerciseIds,
-    });
+    };
+    this.profileRepository.updateActiveProfile((profile) => ({
+      ...profile,
+      workoutSessions: [session, ...profile.workoutSessions],
+    }));
   }
 
   formatSessionDate(dateValue: string): string {
@@ -514,6 +553,12 @@ export class App implements OnDestroy {
     return `${Math.round(seconds / 60)} min`;
   }
 
+  private createRecordId(): string {
+    return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
   toggleBuilderExercise(id: number): void {
     this.builderSelection.update((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
   }
@@ -524,11 +569,19 @@ export class App implements OnDestroy {
       this.notify('Välj minst en övning först.');
       return;
     }
-    const title = `Mitt pass ${this.savedWorkouts().length + 1}`;
-    this.savedWorkouts.update((items) => [
-      { id: Date.now(), name: title, focus: 'Eget pass', minutes: Math.max(5, Math.round(ids.length * 2.5)), exerciseIds: [...ids] },
-      ...items,
-    ]);
+    const profile = this.activeProfile();
+    const title = `Mitt pass ${profile.savedWorkouts.filter((workout) => workout.id.startsWith('custom-')).length + 1}`;
+    const workout: SavedWorkout = {
+      id: `custom-${this.createRecordId()}`,
+      name: title,
+      focus: 'Eget pass',
+      minutes: Math.max(5, Math.round(ids.length * 2.5)),
+      exerciseIds: [...ids],
+    };
+    this.profileRepository.updateActiveProfile((current) => ({
+      ...current,
+      savedWorkouts: [workout, ...current.savedWorkouts],
+    }));
     this.builderOpen.set(false);
     this.selectTab('workouts');
     this.notify(`${title} sparat.`);
