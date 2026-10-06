@@ -258,9 +258,8 @@ export class App implements OnDestroy {
     this.notify(`Snyggt, ${nickname}! Din profil är uppdaterad.`);
   }
 
-  customizeProfileFromPrompt(): void {
+  goToProfile(): void {
     this.selectTab('profile');
-    this.startProfileEditing();
   }
 
   generateQuickWorkout(): void {
