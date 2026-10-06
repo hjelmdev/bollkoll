@@ -11,6 +11,16 @@ const appViewMatcher: UrlMatcher = (segments): UrlMatchResult | null => {
     return { consumed: segments, posParams: { view: segments[0] } };
   }
 
+  if (segments.length === 2 && segments[0].path === 'mina-pass') {
+    return {
+      consumed: segments,
+      posParams: {
+        view: new UrlSegment('pass', {}),
+        workoutId: segments[1],
+      },
+    };
+  }
+
   if (
     segments.length === 3 &&
     segments[0].path === 'resultat' &&

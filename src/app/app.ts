@@ -69,6 +69,10 @@ export class App implements OnDestroy {
   readonly quickGenerated = signal(false);
   readonly builderOpen = signal(false);
   readonly builderSelection = signal<number[]>([1, 2, 5]);
+  readonly selectedWorkoutId = signal<string | null>(null);
+  readonly selectedSavedWorkout = computed(() => this.savedWorkouts().find((workout) => workout.id === this.selectedWorkoutId()) ?? null);
+  readonly builderWorkoutId = signal<string | null>(null);
+  readonly builderWorkoutName = signal('');
   readonly showPlayer = signal(false);
   readonly playerExerciseIds = signal<number[]>([]);
   readonly playerIndex = signal(0);
@@ -162,7 +166,7 @@ export class App implements OnDestroy {
   constructor() {
     document.addEventListener('visibilitychange', this.visibilityHandler);
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
-      this.syncRoute(params.get('view'), params.get('tab'), params.get('sessionId'));
+      this.syncRoute(params.get('view'), params.get('tab'), params.get('sessionId'), params.get('workoutId'));
     });
   }
 
@@ -182,7 +186,7 @@ export class App implements OnDestroy {
     requestAnimationFrame(() => window.scrollTo(0, 0));
   }
 
-  private syncRoute(view: string | null, tabFragment: string | null, sessionId: string | null): void {
+  private syncRoute(view: string | null, tabFragment: string | null, sessionId: string | null, workoutId: string | null): void {
     if (view === 'resultat') {
       const tab = this.tabForRoute(tabFragment ?? '');
       const session = this.workoutSessions().find((item) => item.id === sessionId);
@@ -200,9 +204,25 @@ export class App implements OnDestroy {
       return;
     }
 
+    if (view === 'pass') {
+      const workout = this.savedWorkouts().find((item) => item.id === workoutId);
+      if (!workout) {
+        this.selectedWorkoutId.set(null);
+        this.activeTab.set('workouts');
+        this.notify('Passet finns inte sparat på den här enheten.');
+        void this.router.navigateByUrl('/mina-pass', { replaceUrl: true });
+        return;
+      }
+      this.activeTab.set('workouts');
+      this.selectedWorkoutId.set(workout.id);
+      this.workoutFeedbackSession.set(null);
+      return;
+    }
+
     const tab = this.tabForRoute(view ?? '');
     if (!tab) return;
     this.activeTab.set(tab);
+    this.selectedWorkoutId.set(null);
     this.workoutFeedbackSession.set(null);
   }
 
@@ -299,6 +319,34 @@ export class App implements OnDestroy {
 
   startSavedWorkout(workout: SavedWorkout): void {
     this.startPlayer(workout.exerciseIds, workout.name);
+  }
+
+  openSavedWorkout(workout: SavedWorkout): void {
+    void this.router.navigateByUrl(`/mina-pass/${encodeURIComponent(workout.id)}`);
+    window.scrollTo(0, 0);
+  }
+
+  backToSavedWorkouts(): void {
+    void this.router.navigateByUrl('/mina-pass');
+    window.scrollTo(0, 0);
+  }
+
+  openWorkoutBuilder(workout?: SavedWorkout): void {
+    this.builderWorkoutId.set(workout && !workout.id.startsWith('starter-') ? workout.id : null);
+    this.builderWorkoutName.set(workout?.name ?? `Mitt pass ${this.savedWorkouts().filter((item) => item.id.startsWith('custom-')).length + 1}`);
+    this.builderSelection.set(workout ? [...workout.exerciseIds] : [1, 2, 5]);
+    this.builderOpen.set(true);
+  }
+
+  moveBuilderExercise(id: number, offset: number): void {
+    this.builderSelection.update((items) => {
+      const index = items.indexOf(id);
+      const nextIndex = index + offset;
+      if (index < 0 || nextIndex < 0 || nextIndex >= items.length) return items;
+      const reordered = [...items];
+      [reordered[index], reordered[nextIndex]] = [reordered[nextIndex], reordered[index]];
+      return reordered;
+    });
   }
 
   startPlayer(ids: number[], title = 'Träningspass'): void {
@@ -581,22 +629,29 @@ export class App implements OnDestroy {
       this.notify('Välj minst en övning först.');
       return;
     }
-    const profile = this.activeProfile();
-    const title = `Mitt pass ${profile.savedWorkouts.filter((workout) => workout.id.startsWith('custom-')).length + 1}`;
+    const title = this.builderWorkoutName().trim();
+    if (!title) {
+      this.notify('Skriv ett namn på passet först.');
+      return;
+    }
+    const existingId = this.builderWorkoutId();
+    const existing = existingId ? this.savedWorkouts().find((item) => item.id === existingId) : undefined;
     const workout: SavedWorkout = {
-      id: `custom-${this.createRecordId()}`,
+      id: existing?.id ?? `custom-${this.createRecordId()}`,
       name: title,
-      focus: 'Eget pass',
+      focus: existing?.focus ?? 'Eget pass',
       minutes: Math.max(5, Math.round(ids.length * 2.5)),
       exerciseIds: [...ids],
     };
     this.profileRepository.updateActiveProfile((current) => ({
       ...current,
-      savedWorkouts: [workout, ...current.savedWorkouts],
+      savedWorkouts: existing
+        ? current.savedWorkouts.map((item) => item.id === existing.id ? workout : item)
+        : [workout, ...current.savedWorkouts],
     }));
     this.builderOpen.set(false);
-    this.selectTab('workouts');
-    this.notify(`${title} sparat.`);
+    this.notify(existing ? `${title} uppdaterat.` : `${title} sparat.`);
+    this.openSavedWorkout(workout);
   }
 
   exerciseById(id: number): Exercise | undefined {
