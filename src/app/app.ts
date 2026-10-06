@@ -129,15 +129,6 @@ export class App implements OnDestroy {
     }
   };
 
-  private readonly navigationViewportHandler = (): void => {
-    const visualViewport = window.visualViewport;
-    const visibleBottom = visualViewport
-      ? visualViewport.offsetTop + visualViewport.height
-      : window.innerHeight;
-    const bottomOffset = window.innerHeight - visibleBottom;
-    document.documentElement.style.setProperty('--mobile-nav-bottom-offset', `${bottomOffset}px`);
-  };
-
   readonly filteredExercises = computed(() => {
     const category = this.selectedCategory();
     const search = this.searchTerm().trim().toLocaleLowerCase('sv');
@@ -166,17 +157,10 @@ export class App implements OnDestroy {
 
   constructor() {
     document.addEventListener('visibilitychange', this.visibilityHandler);
-    window.addEventListener('resize', this.navigationViewportHandler);
-    window.visualViewport?.addEventListener('resize', this.navigationViewportHandler);
-    window.visualViewport?.addEventListener('scroll', this.navigationViewportHandler);
-    this.navigationViewportHandler();
   }
 
   ngOnDestroy(): void {
     document.removeEventListener('visibilitychange', this.visibilityHandler);
-    window.removeEventListener('resize', this.navigationViewportHandler);
-    window.visualViewport?.removeEventListener('resize', this.navigationViewportHandler);
-    window.visualViewport?.removeEventListener('scroll', this.navigationViewportHandler);
     this.clearPlayerTicker();
     void this.releaseWakeLock();
     this.unlockBackgroundScroll();
