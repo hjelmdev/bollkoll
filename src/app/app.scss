@@ -87,7 +87,7 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.045em; }
 .quick-fields label, .login-label { display: grid; gap: .35rem; color: var(--muted); font-size: .7rem; font-weight: 750; }
 .quick-fields select, .login-label input { width: 100%; min-width: 0; min-height: 2.7rem; border: 1px solid var(--line); border-radius: .75rem; padding: 0 .65rem; background: #fafbf9; color: var(--ink); font: inherit; font-size: .76rem; }
 .quick-panel > .primary-button, .generated-panel > .primary-button { width: 100%; }
-.generated-panel { margin-top: .75rem; }
+.generated-panel { margin-top: .75rem; scroll-margin-top: 5.25rem; }
 .generated-panel .section-heading { align-items: center; }
 .generated-list { display: grid; gap: .45rem; margin: .85rem 0; }
 .generated-item { display: flex; align-items: center; gap: .55rem; min-height: 3.7rem; border: 1px solid var(--line); border-radius: .8rem; padding: .45rem .55rem; }

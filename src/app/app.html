@@ -127,7 +127,7 @@
 
 @if (showPlayer()) {
   <div class="player-screen" #playerScreen>
-    <header><div><span class="player-brand">Bollkoll</span><small class="player-title">{{ playerTitle() }}</small></div><button class="icon-button" type="button" aria-label="Avsluta passet" (click)="exitPlayer()">×</button></header>
+    <header><div><span class="player-brand">Bollkoll</span><small class="player-title">{{ playerTitle() }}</small></div><button class="icon-button" type="button" aria-label="Avsluta passet" (click)="finishPlayer()">×</button></header>
     @if (playerExercise(); as exercise) {
       <div class="player-progress"><span>Övning {{ playerIndex() + 1 }} av {{ playerExerciseIds().length }}</span><div><i [style.width.%]="playerProgressPercent()"></i></div></div>
       <div class="player-content">
@@ -151,7 +151,8 @@
           @if (playerStatus() === 'running') {<button class="primary-button" type="button" (click)="pausePlayer()">Pausa <span>Ⅱ</span></button>}
           @if (playerStatus() === 'paused') {<button class="primary-button" type="button" (click)="resumePlayer()">Fortsätt <span>▶</span></button>}
           @if (playerStatus() === 'exerciseDone') {<button class="primary-button" type="button" (click)="continuePlayer()">{{ playerIndex() + 1 === playerExerciseIds().length ? 'Slutför pass' : 'Nästa övning' }} <span>→</span></button>}
-          @if (playerStatus() !== 'exerciseDone') {<button class="player-secondary" type="button" (click)="skipPlayerExercise()">Hoppa över övningen</button>}
+          @if (playerStatus() !== 'exerciseDone' && playerIndex() + 1 < playerExerciseIds().length) {<button class="player-secondary" type="button" (click)="skipPlayerExercise()">Hoppa över övningen</button>}
+          @if (playerStatus() !== 'exerciseDone' && playerIndex() + 1 === playerExerciseIds().length && (playerStatus() !== 'ready' || hasTrainingTime())) {<button class="player-secondary" type="button" (click)="finishPlayer()">Avsluta passet</button>}
         </div>
         @if (playerIndex() + 1 < playerExerciseIds().length) {
           <div class="next-exercise"><span>Nästa övning</span>@if (exerciseById(playerExerciseIds()[playerIndex() + 1]); as next) {<strong>{{ next.name }}</strong>}</div>

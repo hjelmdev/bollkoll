@@ -307,14 +307,15 @@ export class App implements OnDestroy {
     this.beginCurrentExercise();
   }
 
-  exitPlayer(): void {
+  exitPlayer(): WorkoutSession | undefined {
     if (this.playerStatus() === 'running') this.updatePlayerCountdown();
-    this.saveCurrentWorkoutSession();
+    const session = this.saveCurrentWorkoutSession();
     this.clearPlayerTicker();
     this.showPlayer.set(false);
     this.playerStatus.set('paused');
     void this.releaseWakeLock();
     this.unlockBackgroundScroll();
+    return session;
   }
 
   formatTime(totalSeconds: number): string {
@@ -372,6 +373,10 @@ export class App implements OnDestroy {
     }
     this.playerStatus.set('exerciseDone');
     void this.releaseWakeLock();
+  }
+
+  hasTrainingTime(): boolean {
+    return this.playerElapsedSeconds().some((seconds) => seconds > 0);
   }
 
   private lockBackgroundScroll(): void {
@@ -452,24 +457,23 @@ export class App implements OnDestroy {
     }
   }
 
-  private finishPlayer(): void {
+  finishPlayer(): void {
+    const session = this.exitPlayer();
+    if (!session) return;
     const completedCount = this.completedPlayerExerciseIds().length;
     const nickname = this.activeProfile().nickname;
-    this.exitPlayer();
     const exerciseWord = completedCount === 1 ? 'övning' : 'övningar';
-    this.notify(nickname
-      ? `Snyggt jobbat, ${nickname}! ${completedCount} ${exerciseWord} klara.`
-      : `Snyggt jobbat! ${completedCount} ${exerciseWord} klara.`);
-
+    const greeting = nickname ? `Snyggt jobbat, ${nickname}!` : 'Snyggt jobbat!';
+    const progress = `${session.completionPercent}% av passet · ${completedCount} av ${session.plannedExerciseIds.length} ${exerciseWord} klara.`;
+    this.notify(`${greeting} ${progress}`);
   }
 
-  private saveCurrentWorkoutSession(): void {
+  private saveCurrentWorkoutSession(): WorkoutSession | undefined {
     if (this.playerSessionSaved) return;
     const plannedExerciseIds = [...this.playerExerciseIds()];
     const completedExerciseIds = [...this.completedPlayerExerciseIds()];
     const durationSeconds = this.playerElapsedSeconds().reduce((total, seconds) => total + seconds, 0);
     if (durationSeconds === 0) return;
-    this.playerSessionSaved = true;
 
     const plannedSeconds = plannedExerciseIds.reduce((total, id) => total + (this.exerciseById(id)?.durationSeconds ?? 0), 0);
     const session: WorkoutSession = {
@@ -482,10 +486,12 @@ export class App implements OnDestroy {
       plannedExerciseIds,
       completedExerciseIds,
     };
+    this.playerSessionSaved = true;
     this.profileRepository.updateActiveProfile((profile) => ({
       ...profile,
       workoutSessions: [session, ...profile.workoutSessions],
     }));
+    return session;
   }
 
   formatSessionDate(dateValue: string): string {
