@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { ElementRef, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PLAYER_PROFILE_REPOSITORY } from './core/player-profile.repository';
+import { EXERCISE_GUIDES } from './data/exercise-guides';
 import { EXERCISES } from './data/exercises';
 import type { Exercise } from './models/exercise.model';
 import type { SavedWorkout, WorkoutSession } from './models/player-profile.model';
@@ -168,6 +169,11 @@ export class App implements OnDestroy {
   });
 
   readonly playerExercise = computed(() => this.exercises.find((exercise) => exercise.id === this.playerExerciseIds()[this.playerIndex()]));
+  readonly playerGuide = computed(() => {
+    const exercise = this.playerExercise();
+    const guide = exercise ? EXERCISE_GUIDES[exercise.id] : undefined;
+    return guide ? { ...guide, imageUrl: new URL(guide.imagePath, document.baseURI).href, panelAspectRatio: guide.imageAspectRatio / guide.steps.length } : null;
+  });
 
   constructor() {
     document.addEventListener('visibilitychange', this.visibilityHandler);

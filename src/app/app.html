@@ -136,10 +136,21 @@
       <div class="player-content">
         <p class="eyebrow">{{ exercise.focusAreas[0] }} · {{ exercise.difficulty }}</p>
         <h1>{{ exercise.name }}</h1>
-        <div class="player-media" aria-label="Plats för övningens bild eller film">
-          <span aria-hidden="true">⚽</span>
-          <small>Här visas bild eller film för övningen</small>
-        </div>
+        @if (playerGuide(); as guide) {
+          <section class="exercise-guide" aria-label="Steg för övningen">
+            <div class="exercise-guide-frames" tabindex="0" aria-label="Bläddra mellan övningens bildsteg">
+              @for (step of guide.steps; track $index; let index = $index) {
+                <figure class="exercise-guide-frame" role="img" [attr.aria-label]="step.description" [style.background-image]="'url(' + guide.imageUrl + ')'" [style.background-size]="guide.steps.length * 100 + '% 100%'" [style.background-position]="(index / (guide.steps.length - 1) * 100) + '% 50%'" [style.aspect-ratio]="guide.panelAspectRatio">
+                  <span class="exercise-guide-number">{{ index + 1 }}</span>
+                  <figcaption>{{ step.caption }}</figcaption>
+                </figure>
+              }
+            </div>
+            @if (guide.steps.length > 1) {<p class="exercise-guide-hint">Svep för att se nästa steg <span aria-hidden="true">→</span></p>}
+          </section>
+        } @else {
+          <div class="player-media" aria-label="Plats för övningens bild eller film"><span aria-hidden="true">⚽</span><small>Övningsbilder kommer</small></div>
+        }
         <section class="player-instructions" aria-label="Instruktion">
           <span>Gör så här</span>
           <p>{{ exercise.description }}</p>
