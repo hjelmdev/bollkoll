@@ -241,13 +241,13 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.045em; }
 .player-media > span { font-size: 3.4rem; }
 .player-media small { color: var(--muted); font-size: .65rem; }
 .exercise-guide { width: min(100%, 27rem); }
-.exercise-guide-frames { display: flex; overflow-x: auto; border: 1px solid #e3eae0; border-radius: 1.2rem; background: #fbf5e8; scroll-snap-type: x mandatory; overscroll-behavior-inline: contain; touch-action: pan-x; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-.exercise-guide-frames::-webkit-scrollbar { display: none; }
-.exercise-guide-frame { position: relative; flex: 0 0 100%; min-width: 0; margin: 0; background-repeat: no-repeat; background-color: #fbf5e8; scroll-snap-align: start; }
-.exercise-guide-number { position: absolute; top: .55rem; left: .55rem; display: grid; width: 1.6rem; aspect-ratio: 1; place-items: center; border-radius: 50%; background: var(--green); color: #fff; font-size: .7rem; font-weight: 850; }
-.exercise-guide-frame figcaption { position: absolute; right: .5rem; bottom: .5rem; left: .5rem; border: 1px solid rgb(255 255 255 / 75%); border-radius: .7rem; padding: .45rem .6rem; background: rgb(255 255 255 / 90%); color: var(--ink); font-size: .7rem; font-weight: 800; text-align: center; }
-.exercise-guide-hint { margin: .3rem 0 0; color: var(--muted); font-size: .62rem; text-align: center; }
-.exercise-guide-hint span { color: var(--green); }
+.exercise-guide-sheet { display: block; width: 100%; height: auto; border: 1px solid #e3eae0; border-radius: 1.2rem; background: #fbf5e8; object-fit: contain; }
+.exercise-guide-steps { display: grid; gap: .35rem; margin: .45rem 0 0; padding: 0; list-style: none; text-align: left; }
+.exercise-guide-steps li { display: flex; align-items: flex-start; gap: .55rem; border: 1px solid #e7ebe5; border-radius: .75rem; padding: .5rem .6rem; background: #fff; }
+.exercise-guide-steps li > span { display: grid; flex: 0 0 1.35rem; aspect-ratio: 1; place-items: center; border-radius: 50%; background: #edf3e8; color: var(--green); font-size: .65rem; font-weight: 850; }
+.exercise-guide-steps li > div { display: grid; gap: .08rem; }
+.exercise-guide-steps strong { font-size: .68rem; }
+.exercise-guide-steps p { margin: 0; color: var(--muted); font-size: .62rem; line-height: 1.35; }
 .player-instructions { width: min(100%, 27rem); margin-top: .75rem; text-align: left; }
 .player-instructions > span { color: var(--green-soft); font-size: .56rem; font-weight: 850; letter-spacing: .12em; }
 .player-instructions p { margin: .2rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.4; }

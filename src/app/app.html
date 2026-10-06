@@ -138,15 +138,8 @@
         <h1>{{ exercise.name }}</h1>
         @if (playerGuide(); as guide) {
           <section class="exercise-guide" aria-label="Steg för övningen">
-            <div class="exercise-guide-frames" tabindex="0" aria-label="Bläddra mellan övningens bildsteg">
-              @for (step of guide.steps; track $index; let index = $index) {
-                <figure class="exercise-guide-frame" role="img" [attr.aria-label]="step.description" [style.background-image]="'url(' + guide.imageUrl + ')'" [style.background-size]="guide.steps.length * 100 + '% 100%'" [style.background-position]="(index / (guide.steps.length - 1) * 100) + '% 50%'" [style.aspect-ratio]="guide.panelAspectRatio">
-                  <span class="exercise-guide-number">{{ index + 1 }}</span>
-                  <figcaption>{{ step.caption }}</figcaption>
-                </figure>
-              }
-            </div>
-            @if (guide.steps.length > 1) {<p class="exercise-guide-hint">Svep för att se nästa steg <span aria-hidden="true">→</span></p>}
+            <img class="exercise-guide-sheet" [src]="guide.imageUrl" [alt]="guide.steps.map(step => step.description).join(' ')" [style.aspect-ratio]="guide.imageAspectRatio" />
+            <ol class="exercise-guide-steps">@for (step of guide.steps; track $index; let index = $index) {<li><span>{{ index + 1 }}</span><div><strong>{{ step.caption }}</strong><p>{{ step.description }}</p></div></li>}</ol>
           </section>
         } @else {
           <div class="player-media" aria-label="Plats för övningens bild eller film"><span aria-hidden="true">⚽</span><small>Övningsbilder kommer</small></div>
