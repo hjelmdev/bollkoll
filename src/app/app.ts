@@ -40,7 +40,7 @@ interface SavedWorkout {
   exerciseIds: number[];
 }
 
-type PlayerStatus = 'running' | 'paused' | 'exerciseDone';
+type PlayerStatus = 'ready' | 'running' | 'paused' | 'exerciseDone';
 type WakeLockStatus = 'pending' | 'active' | 'unavailable' | 'unsupported';
 
 interface ScreenWakeLockHandle {
@@ -119,6 +119,8 @@ export class App implements OnDestroy {
   private playerEndAt = 0;
   private playerTicker?: number;
   private wakeLock?: ScreenWakeLockHandle;
+  private lockedScrollY = 0;
+  private previousBodyStyles?: { position: string; top: string; width: string; overflow: string };
 
   private readonly visibilityHandler = (): void => {
     if (document.visibilityState === 'hidden') {
@@ -172,6 +174,7 @@ export class App implements OnDestroy {
     document.removeEventListener('visibilitychange', this.visibilityHandler);
     this.clearPlayerTicker();
     void this.releaseWakeLock();
+    this.unlockBackgroundScroll();
   }
 
   selectTab(tab: MainTab): void {
@@ -230,8 +233,15 @@ export class App implements OnDestroy {
     this.playerExerciseIds.set(validIds);
     this.playerIndex.set(0);
     this.completedPlayerExerciseIds.set([]);
+    this.lockBackgroundScroll();
     this.showPlayer.set(true);
     this.beginCurrentExercise();
+  }
+
+  startCurrentExercise(): void {
+    if (this.playerStatus() !== 'ready') return;
+    this.playerStatus.set('running');
+    this.startPlayerTicker();
   }
 
   pausePlayer(): void {
@@ -275,6 +285,7 @@ export class App implements OnDestroy {
     this.showPlayer.set(false);
     this.playerStatus.set('paused');
     void this.releaseWakeLock();
+    this.unlockBackgroundScroll();
   }
 
   formatTime(totalSeconds: number): string {
@@ -298,8 +309,9 @@ export class App implements OnDestroy {
       return;
     }
     this.playerRemaining.set(exercise.durationSeconds);
-    this.playerStatus.set('running');
-    this.startPlayerTicker();
+    this.playerStatus.set('ready');
+    this.clearPlayerTicker();
+    void this.releaseWakeLock();
   }
 
   private startPlayerTicker(): void {
@@ -321,6 +333,31 @@ export class App implements OnDestroy {
       this.completedPlayerExerciseIds.update((ids) => [...ids, finishedId]);
     }
     this.playerStatus.set('exerciseDone');
+    void this.releaseWakeLock();
+  }
+
+  private lockBackgroundScroll(): void {
+    if (this.previousBodyStyles) return;
+    const body = document.body;
+    this.previousBodyStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    this.lockedScrollY = window.scrollY;
+    body.style.position = 'fixed';
+    body.style.top = `-${this.lockedScrollY}px`;
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+  }
+
+  private unlockBackgroundScroll(): void {
+    const previous = this.previousBodyStyles;
+    if (!previous) return;
+    Object.assign(document.body.style, previous);
+    this.previousBodyStyles = undefined;
+    window.scrollTo(0, this.lockedScrollY);
   }
 
   private clearPlayerTicker(): void {

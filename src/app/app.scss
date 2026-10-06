@@ -24,7 +24,7 @@
 .mobile-nav-item { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: .12rem; border: 0; border-radius: .7rem; padding: .32rem .1rem; background: transparent; color: #76817b; font: inherit; font-size: .64rem; font-weight: 700; cursor: pointer; }
 .mobile-nav-item.active { color: var(--green); }
 .nav-icon { display: grid; min-height: 1.35rem; place-items: center; font-size: 1.2rem; line-height: 1; }
-.page-shell { width: min(100% - 2rem, 58rem); margin-inline: auto; padding: .65rem 0 6.6rem; }
+.page-shell { width: min(100% - 2rem, 58rem); margin-inline: auto; padding: .65rem 0 calc(6.6rem + env(safe-area-inset-bottom)); }
 .hero { position: relative; overflow: hidden; min-height: 19.5rem; padding: clamp(1.35rem, 6vw, 3rem); border-radius: 1.65rem; background: var(--green); color: #fff; }
 .eyebrow { margin: 0 0 .5rem; color: var(--green-soft); font-size: .66rem; font-weight: 850; letter-spacing: .14em; }
 .hero .eyebrow { color: var(--lime); }
@@ -194,7 +194,7 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.045em; }
 .builder-option > span:last-child { display: grid; gap: .15rem; }
 .builder-option strong { font-size: .75rem; }
 .builder-option small { color: var(--muted); font-size: .62rem; }
-.player-screen { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom)); background: #f7f8f4; }
+.player-screen { position: fixed; inset: 0; z-index: 50; display: flex; overflow-y: auto; flex-direction: column; padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom)); background: #f7f8f4; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
 .player-screen > header { display: flex; align-items: center; justify-content: space-between; width: min(100%, 45rem); margin-inline: auto; }
 .player-brand { color: var(--green); font-weight: 850; }
 .player-screen > header > div { display: grid; gap: .1rem; }
@@ -202,8 +202,13 @@ h2 { margin-bottom: 0; font-size: 1.25rem; letter-spacing: -.045em; }
 .player-progress { width: min(100%, 45rem); margin: 1.2rem auto 0; color: var(--muted); font-size: .63rem; font-weight: 850; letter-spacing: .1em; }
 .player-progress > div { overflow: hidden; height: .3rem; margin-top: .4rem; border-radius: 999px; background: #e2e9e2; }
 .player-progress i { display: block; height: 100%; border-radius: inherit; background: #78a88a; transition: width .2s ease; }
-.player-content { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; width: min(100%, 35rem); margin-inline: auto; text-align: center; }
-.player-ball { display: grid; width: 8rem; aspect-ratio: 1; margin-bottom: 1rem; place-items: center; border-radius: 50%; background: #e9f0e1; font-size: 4.2rem; }
+.player-content { display: flex; flex: 1 0 auto; flex-direction: column; align-items: center; justify-content: center; width: min(100%, 35rem); min-height: min(38rem, 70svh); margin-inline: auto; padding-block: 1rem; text-align: center; }
+.player-media { display: grid; width: min(100%, 27rem); aspect-ratio: 16 / 9; align-content: center; justify-items: center; gap: .5rem; border: 1px solid #e3eae0; border-radius: 1.2rem; background: radial-gradient(circle at 50% 42%, #e8f0e2 0 27%, transparent 28%), #f0f4ed; }
+.player-media > span { font-size: 3.4rem; }
+.player-media small { color: var(--muted); font-size: .65rem; }
+.player-instructions { width: min(100%, 27rem); margin-top: .75rem; text-align: left; }
+.player-instructions > span { color: var(--green-soft); font-size: .56rem; font-weight: 850; letter-spacing: .12em; }
+.player-instructions p { margin: .2rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.4; }
 .player-content h1 { margin-bottom: .65rem; font-size: clamp(2rem, 8vw, 3rem); }
 .player-content > p:not(.eyebrow) { max-width: 23rem; color: var(--muted); line-height: 1.5; }
 .timer-placeholder { margin: .8rem 0 .15rem; color: var(--green); font-size: 3.8rem; font-weight: 850; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }

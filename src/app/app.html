@@ -122,16 +122,23 @@
     @if (playerExercise(); as exercise) {
       <div class="player-progress"><span>ÖVNING {{ playerIndex() + 1 }} AV {{ playerExerciseIds().length }}</span><div><i [style.width.%]="playerProgressPercent()"></i></div></div>
       <div class="player-content">
-        <span class="player-ball">⚽</span>
         <p class="eyebrow">{{ exercise.focusAreas[0] }} · {{ exercise.difficulty }}</p>
         <h1>{{ exercise.name }}</h1>
-        <p>{{ exercise.description }}</p>
+        <div class="player-media" aria-label="Plats för övningens bild eller film">
+          <span aria-hidden="true">⚽</span>
+          <small>Här visas bild eller film för övningen</small>
+        </div>
+        <section class="player-instructions" aria-label="Instruktion">
+          <span>GÖR SÅ HÄR</span>
+          <p>{{ exercise.description }}</p>
+        </section>
         <div class="timer-placeholder" role="timer" aria-live="off" [attr.aria-label]="formatTime(playerRemaining())">{{ formatTime(playerRemaining()) }}</div>
-        <p class="timer-caption">@if (playerStatus() === 'exerciseDone') {Övningen är klar!} @else if (playerStatus() === 'paused') {Pausad} @else {Kör i din takt}</p>
+        <p class="timer-caption">@if (playerStatus() === 'exerciseDone') {Övningen är klar!} @else if (playerStatus() === 'paused') {Pausad} @else if (playerStatus() === 'ready') {Kika på instruktionen innan du startar} @else {Kör i din takt}</p>
         @if (playerStatus() === 'running') {
           <small class="wake-lock-note" [class.wake-lock-active]="playerWakeLockStatus() === 'active'">@if (playerWakeLockStatus() === 'active') {Skärmen hålls aktiv} @else if (playerWakeLockStatus() === 'pending') {Försöker hålla skärmen aktiv…} @else {Skärmen kan släckas under passet}</small>
         }
         <div class="player-actions">
+          @if (playerStatus() === 'ready') {<button class="primary-button" type="button" (click)="startCurrentExercise()">Starta övningen <span>▶</span></button>}
           @if (playerStatus() === 'running') {<button class="primary-button" type="button" (click)="pausePlayer()">Pausa <span>Ⅱ</span></button>}
           @if (playerStatus() === 'paused') {<button class="primary-button" type="button" (click)="resumePlayer()">Fortsätt <span>▶</span></button>}
           @if (playerStatus() === 'exerciseDone') {<button class="primary-button" type="button" (click)="continuePlayer()">{{ playerIndex() + 1 === playerExerciseIds().length ? 'Slutför pass' : 'Nästa övning' }} <span>→</span></button>}
