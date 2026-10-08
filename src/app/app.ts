@@ -4,7 +4,7 @@ import type { ElementRef, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PLAYER_PROFILE_REPOSITORY } from './core/player-profile.repository';
 import { EXERCISE_GUIDES } from './data/exercise-guides';
-import { EXERCISES } from './data/exercises';
+import { EXERCISES, RETIRED_EXERCISES } from './data/exercises';
 import type { Exercise } from './models/exercise.model';
 import type { SavedWorkout, WorkoutSession } from './models/player-profile.model';
 import { WorkoutFeedback } from './shared/workout-feedback';
@@ -44,7 +44,7 @@ export class App implements OnDestroy {
     { id: 'profile', label: 'Profil', icon: '◉' },
   ];
 
-  readonly categories = ['Alla', 'Bollkontroll', 'Passning', 'Skott', 'Snabbhet', 'Koordination', 'Kondition'];
+  readonly categories = ['Alla', 'Bollkontroll', 'Passning', 'Snabbhet', 'Koordination', 'Kondition'];
 
   readonly exercises = EXERCISES;
 
@@ -712,7 +712,13 @@ export class App implements OnDestroy {
   }
 
   exerciseById(id: number): Exercise | undefined {
-    return this.exercises.find((exercise) => exercise.id === id);
+    return this.exercises.find((exercise) => exercise.id === id)
+      ?? RETIRED_EXERCISES.find((exercise) => exercise.id === id);
+  }
+
+  exerciseGuideImage(exerciseId: number): string | undefined {
+    const guide = EXERCISE_GUIDES[exerciseId];
+    return guide ? new URL(guide.imagePath, document.baseURI).href : undefined;
   }
 
   openInfo(message: string): void {
